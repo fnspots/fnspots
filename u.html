@@ -51,14 +51,23 @@
 
     /* SPRITE GRID */
     .sprites-title{font-family:var(--fn);font-size:14px;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;}
-    .sprite-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;}
-    .sprite-card{border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;}
+    .sprite-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;}
+    .sprite-card{border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s;}
     .sprite-card.collected{border-color:var(--purple);background:#EEEDFE40;box-shadow:0 0 8px rgba(127,119,221,.2);}
-    .sprite-card img{width:52px;height:52px;object-fit:contain;opacity:.25;filter:grayscale(80%);transition:all .2s;}
+    .sprite-card img{width:60px;height:60px;object-fit:contain;opacity:.2;filter:grayscale(80%);transition:all .2s;}
     .sprite-card.collected img{opacity:1;filter:none;}
-    .sprite-card-name{font-family:var(--fn);font-size:8px;letter-spacing:.04em;color:var(--muted);text-align:center;}
+    .sprite-card-name{font-family:var(--fn);font-size:9px;letter-spacing:.04em;color:var(--muted);text-align:center;}
     .sprite-card.collected .sprite-card-name{color:var(--text);}
     .sprite-card-lvl{font-family:var(--fn);font-size:8px;color:var(--purple);letter-spacing:.04em;}
+    .variant-dots{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;}
+    .vdot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all .15s;}
+    .vdot.have{border-width:0;}
+    .vdot-b.have{background:#888780;}
+    .vdot-go.have{background:linear-gradient(135deg,#ffd700,#c8960a);}
+    .vdot-gu.have{background:linear-gradient(135deg,#ff8fab,#d04868);}
+    .vdot-ga.have{background:linear-gradient(135deg,#7b3fb0,#8040f8);}
+    .vdot-h.have{background:linear-gradient(115deg,#ff6b6b,#00cfff,#ff69b4);}
+    .vdot-ge.have{background:linear-gradient(135deg,#60c0e8,#1a90c8);}
 
     /* SHARE */
     .share-section{margin-top:1.5rem;display:flex;gap:8px;flex-wrap:wrap;}
@@ -168,17 +177,29 @@ async function loadProfile(){
   `;
 
   // Build sprite grid
+  const VV_DOT=["b","go","gu","ga","h","ge"];
   const grid=document.getElementById("spriteGrid");
   SPRITES.forEach((sp,si)=>{
-    const key=`${si}-b`;
-    const collected=pmap[key]?.unlocked||false;
-    const level=pmap[key]?.level||0;
+    const baseKey=`${si}-b`;
+    const baseCollected=pmap[baseKey]?.unlocked||false;
+    const baseLevel=pmap[baseKey]?.level||0;
+    // Check any variant collected
+    const anyCollected=VV_DOT.some(v=>!( sp.noV&&v!=="b")&&pmap[`${si}-${v}`]?.unlocked);
+
+    // Build variant dots
+    const dots=VV_DOT.map(v=>{
+      if(sp.noV&&v!=="b")return`<div class="vdot vdot-${v}" title="${v}" style="opacity:.15"></div>`;
+      const have=pmap[`${si}-${v}`]?.unlocked;
+      return`<div class="vdot vdot-${v}${have?" have":""}" title="${v}"></div>`;
+    }).join("");
+
     const card=document.createElement("div");
-    card.className="sprite-card"+(collected?" collected":"");
+    card.className="sprite-card"+(anyCollected?" collected":"");
     card.innerHTML=`
       <img src="/${sp.imgs.b}" alt="${sp.name}" loading="lazy"/>
       <div class="sprite-card-name">${sp.name}</div>
-      ${level>0?`<div class="sprite-card-lvl">${level===5?"★ MAX":"Lv "+level}</div>`:""}
+      ${baseLevel>0?`<div class="sprite-card-lvl">${baseLevel===5?"★ MAX":"Lv "+baseLevel}</div>`:""}
+      <div class="variant-dots">${dots}</div>
     `;
     grid.appendChild(card);
   });
