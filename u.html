@@ -106,11 +106,13 @@ async function loadProfile(){
   if(!gamertag){showNotFound();return;}
 
   // Get profile
-  const {data:profile}=await sb.from("profiles").select("id,gamertag,created_at").eq("gamertag",gamertag).single();
-  if(!profile){showNotFound();return;}
+  const {data:profile,error:pe}=await sb.from("profiles").select("id,gamertag,created_at").eq("gamertag",gamertag).single();
+  console.log("Profile result:",profile,"Error:",pe);
+  if(!profile||pe){showNotFound("Profile error: "+(pe?.message||"not found"));return;}
 
   // Get progress
-  const {data:progress}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",profile.id);
+  const {data:progress,error:pge}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",profile.id);
+  console.log("Progress result:",progress,"Error:",pge);
   const pmap={};
   if(progress)progress.forEach(r=>{pmap[r.sprite_key]={unlocked:r.unlocked,level:r.level};});
 
@@ -182,11 +184,12 @@ async function loadProfile(){
   });
 }
 
-function showNotFound(){
+function showNotFound(reason=""){
   document.getElementById("content").innerHTML=`
     <div class="not-found">
       <h2>Profile not found</h2>
       <p>No FNSpots user found for "${gamertag}"</p>
+      ${reason?`<p style="margin-top:8px;font-size:11px;color:#D4537E;">${reason}</p>`:""}
     </div>
   `;
 }
