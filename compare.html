@@ -100,7 +100,7 @@ if(params.get("u2"))document.getElementById("tag2").value=params.get("u2");
 if(params.get("u1")&&params.get("u2"))compare();
 
 async function getPlayerData(gamertag){
-  const {data:profile}=await sb.from("profiles").select("id,gamertag").eq("gamertag",gamertag).single();
+  const {data:profile}=await sb.from("profiles").select("id,gamertag").ilike("gamertag",gamertag).single();
   if(!profile)return null;
   const {data:progress}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",profile.id);
   const pmap={};
