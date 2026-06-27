@@ -115,7 +115,7 @@ async function loadProfile(){
   if(!gamertag){showNotFound();return;}
 
   // Get profile
-  const {data:profile,error:pe}=await sb.from("profiles").select("id,gamertag,created_at").eq("gamertag",gamertag).single();
+  const {data:profile,error:pe}=await sb.from("profiles").select("id,gamertag,created_at").ilike("gamertag",gamertag).single();
   console.log("Profile result:",profile,"Error:",pe);
   if(!profile||pe){showNotFound("Profile error: "+(pe?.message||"not found"));return;}
 
