@@ -158,7 +158,7 @@
       .header-title { font-size: 18px; }
       .header-sub { font-size: 9px; }
 
-      /* 2. Progress bar — shrink 0/107, keep % big */
+      /* 2. Progress bar — shrink 0/103, keep % big */
       .progress-count { font-size: 9px; }
       .progress-pct { font-size: 26px; }
       .progress-bar { width: 80px; height: 5px; }
@@ -224,7 +224,7 @@
     <div class="progress-wrap">
       <div class="progress-bar"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
       <div class="progress-row">
-        <span class="progress-count" id="pcount">0 / 107</span>
+        <span class="progress-count" id="pcount">0 / 103</span>
         <span class="progress-pct" id="ppct">0%</span>
       </div>
     </div>
@@ -485,9 +485,9 @@ function save(spriteKey){
 function upd(){
   const c={b:0,go:0,gu:0,ga:0,h:0,ge:0};let t=0;
   SPRITES.forEach((sp,si)=>VV.forEach(v=>{if(sp.noV&&v!=="b")return;if(state[`${si}-${v}`]){t++;c[v]++;}}));
-  const p=Math.round(t/107*100);
+  const p=Math.round(t/103*100);
   document.getElementById("pbar").style.width=p+"%";
-  document.getElementById("pcount").textContent=`${t} / 107`;
+  document.getElementById("pcount").textContent=`${t} / 103`;
   document.getElementById("ppct").textContent=`${p}%`;
   document.getElementById("s-b").textContent=c.b+"/18";
   document.getElementById("s-go").textContent=c.go+"/17";
@@ -525,7 +525,7 @@ initAuth();
         </div>
         <div class="card-gamertag" id="cardGamertag">Player</div>
         <div class="card-pct" id="cardPct">0%</div>
-        <div class="card-count" id="cardCount">0 / 107 SPRITES</div>
+        <div class="card-count" id="cardCount">0 / 103 SPRITES</div>
         <div class="card-bar-wrap"><div class="card-bar-fill" id="cardBar" style="width:0%"></div></div>
         <div class="card-sprites" id="cardSprites"></div>
         <div class="card-footer">fnspots.com/u/<span class="card-url" id="cardUrl">-</span></div>
@@ -557,7 +557,7 @@ function openShareCard(){
 
   document.getElementById("cardGamertag").textContent=tag;
   document.getElementById("cardPct").textContent=pct+"%";
-  document.getElementById("cardCount").textContent=total+" / 107 SPRITES";
+  document.getElementById("cardCount").textContent=total+" / 103 SPRITES";
   document.getElementById("cardBar").style.width=pct+"%";
   document.getElementById("cardUrl").textContent=tag;
 
