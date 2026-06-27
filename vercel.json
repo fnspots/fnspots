@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/u/:gamertag", "destination": "/u.html" },
-    { "source": "/compare", "destination": "/compare.html" }
+    { "source": "/compare", "destination": "/compare.html" },
+    { "source": "/about", "destination": "/about.html" }
   ]
 }
