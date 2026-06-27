@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FNSpots — Fortnite Sprite Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="sprites.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -179,6 +180,44 @@ const KEY="fnspots-v4";
 let state={};try{state=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(e){}
 let user=null,curTab="create";
 
+// Supabase
+const SURL="https://rjqxkgdnmypfuvsgfeuh.supabase.co";
+const SKEY="sb_publishable_w6Oe-81eBgkmkmWSLBAiJQ_iCvMdFA9";
+const sb=supabase.createClient(SURL,SKEY);
+
+// Check existing session on load
+async function initAuth(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",session.user.id).single();
+    if(profile){user={tag:profile.gamertag,email:session.user.email,id:session.user.id};updBtn();await loadProgress();}
+  }
+}
+
+async function loadProgress(){
+  if(!user)return;
+  const {data}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",user.id);
+  if(data&&data.length){
+    data.forEach(r=>{
+      if(r.unlocked)state[r.sprite_key]=true;
+      if(r.level>0)state[r.sprite_key+"-lv"]=r.level;
+    });
+    localStorage.setItem(KEY,JSON.stringify(state));
+    // Refresh UI
+    document.querySelectorAll(".cell").forEach(c=>c.classList.remove("unlocked"));
+    document.querySelectorAll("input.lvl").forEach(s=>s.value=0);
+    document.querySelectorAll(".ll").forEach(l=>l.textContent="");
+    buildGrid();
+  }
+}
+
+async function syncProgress(spriteKey){
+  if(!user)return;
+  const unlocked=!!state[spriteKey];
+  const level=state[spriteKey+"-lv"]||0;
+  await sb.from("progress").upsert({user_id:user.id,sprite_key:spriteKey,unlocked,level,updated_at:new Date().toISOString()},{onConflict:"user_id,sprite_key"});
+}
+
 function openModal(){
   if(user){if(confirm("Logged in as "+user.tag+"\n\nLog out?")){user=null;updBtn();}return;}
   renderFields();document.getElementById("modalOverlay").classList.add("open");
@@ -199,21 +238,47 @@ function renderFields(){
     ?`<div><div class="field-label">Gamertag</div><input class="field-input" id="f-tag" placeholder="e.g. Mutron" maxlength="20"></div><div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Min. 6 characters"></div>`
     :`<div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Your password"></div>`;
 }
-function handleAuth(){
+async function handleAuth(){
   const err=document.getElementById("mErr");err.textContent="";
   const email=document.getElementById("f-email")?.value.trim();
   const pass=document.getElementById("f-pass")?.value;
   if(!email||!pass){err.textContent="Please fill in all fields.";return;}
   if(pass.length<6){err.textContent="Password must be at least 6 characters.";return;}
-  const tag=curTab==="create"?document.getElementById("f-tag")?.value.trim():email.split("@")[0];
-  if(curTab==="create"&&!tag){err.textContent="Gamertag is required.";return;}
-  user={tag,email};closeModal();updBtn();
-  toast(curTab==="create"?"Account created! Progress saved ✨":"Logged in! Progress synced ✨");
+  const cta=document.getElementById("mCta");
+  cta.textContent="...";cta.disabled=true;
+
+  if(curTab==="create"){
+    const tag=document.getElementById("f-tag")?.value.trim();
+    if(!tag){err.textContent="Gamertag is required.";cta.textContent="Create Account";cta.disabled=false;return;}
+    // Check gamertag not taken
+    const {data:existing}=await sb.from("profiles").select("gamertag").eq("gamertag",tag).single();
+    if(existing){err.textContent="Gamertag already taken.";cta.textContent="Create Account";cta.disabled=false;return;}
+    const {data,error}=await sb.auth.signUp({email,password:pass});
+    if(error){err.textContent=error.message;cta.textContent="Create Account";cta.disabled=false;return;}
+    await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
+    user={tag,email,id:data.user.id};
+    closeModal();updBtn();
+    toast("Account created! Progress saved ✨");
+  } else {
+    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error){err.textContent="Invalid email or password.";cta.textContent="Log In";cta.disabled=false;return;}
+    const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
+    user={tag:profile.gamertag,email,id:data.user.id};
+    closeModal();updBtn();
+    await loadProgress();
+    toast("Welcome back "+user.tag+" ✨");
+  }
+  cta.disabled=false;
 }
 function updBtn(){
   const btn=document.getElementById("authBtn");
-  if(user){btn.className="auth-btn logged";btn.innerHTML=`<div class="auth-avatar">${user.tag[0].toUpperCase()}</div>${user.tag}`;}
-  else{btn.className="auth-btn";btn.innerHTML="🔓 Save Progress";}
+  if(user){
+    btn.className="auth-btn logged";
+    btn.innerHTML=`<div class="auth-avatar">${user.tag[0].toUpperCase()}</div>${user.tag}`;
+    btn.onclick=async()=>{if(confirm("Log out "+user.tag+"?")){await sb.auth.signOut();user=null;state={};localStorage.removeItem(KEY);updBtn();upd();}};
+  } else {
+    btn.className="auth-btn";btn.innerHTML="🔓 Save Progress";btn.onclick=openModal;
+  }
 }
 function toast(msg){
   const p=document.createElement("div");p.className="toast";p.textContent=msg;
@@ -246,8 +311,8 @@ function buildGrid(){
       const sl=document.createElement("input");sl.type="range";sl.className="lvl";sl.min=0;sl.max=5;sl.step=1;sl.value=off?0:(state[lk]||0);sl.disabled=off;if(off)sl.style.opacity=".15";
       const lb=document.createElement("div");lb.className="ll";
       if(!off){
-        cell.onclick=()=>{state[ck]=!state[ck];if(!state[ck])state[lk]=0;cell.classList.toggle("unlocked",state[ck]);rfr(si,v,sl,lb);save();upd();};
-        sl.oninput=()=>{const val=parseInt(sl.value);state[lk]=val;if(val>0&&!state[ck]){state[ck]=true;cell.classList.add("unlocked");}if(val===0){state[ck]=false;cell.classList.remove("unlocked");}rfr(si,v,sl,lb);save();upd();};
+        cell.onclick=()=>{state[ck]=!state[ck];if(!state[ck])state[lk]=0;cell.classList.toggle("unlocked",state[ck]);rfr(si,v,sl,lb);save(ck);upd();};
+        sl.oninput=()=>{const val=parseInt(sl.value);state[lk]=val;if(val>0&&!state[ck]){state[ck]=true;cell.classList.add("unlocked");}if(val===0){state[ck]=false;cell.classList.remove("unlocked");}rfr(si,v,sl,lb);save(ck);upd();};
       }
       rfr(si,v,sl,lb);sw2.appendChild(sl);sw2.appendChild(lb);wrap.appendChild(cell);wrap.appendChild(sw2);row.appendChild(wrap);
     });
@@ -257,7 +322,10 @@ function buildGrid(){
 }
 
 function rfr(si,v,sl,lb){const c=state[`${si}-${v}-lv`]||0;sl.value=c;if(c===0){lb.textContent="";sl.className="lvl";}else if(c===5){lb.textContent="★ MASTERED";lb.style.color="#EF9F27";sl.className="lvl m";}else{lb.textContent=`Lv ${c}`;lb.style.color="var(--muted)";sl.className="lvl";}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function save(spriteKey){
+  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+  if(user&&spriteKey)syncProgress(spriteKey);
+}
 function upd(){
   const c={b:0,go:0,gu:0,ga:0,h:0,ge:0};let t=0;
   SPRITES.forEach((sp,si)=>VV.forEach(v=>{if(sp.noV&&v!=="b")return;if(state[`${si}-${v}`]){t++;c[v]++;}}));
@@ -283,6 +351,7 @@ function resetAll(){
 
 renderFields();
 buildGrid();
+initAuth();
 </script>
 </body>
 </html>
