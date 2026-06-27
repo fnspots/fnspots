@@ -77,6 +77,7 @@
     .sprite-row{display:grid;grid-template-columns:170px repeat(6,1fr);gap:5px;margin-bottom:5px;align-items:start;}
     .sprite-info{display:flex;flex-direction:column;gap:4px;padding:3px 5px;}
     .sprite-title{display:flex;align-items:center;gap:7px;}
+    .row-icon{width:36px;height:36px;object-fit:contain;flex-shrink:0;}
     .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
     .sname{font-family:var(--fn);font-size:13px;color:#2A2520;}
     .cost-tag{font-size:9px;color:var(--muted);margin-left:auto;white-space:nowrap;}
@@ -229,7 +230,7 @@ function buildGrid(){
     }
     const row=document.createElement("div");row.className="sprite-row";
     const info=document.createElement("div");info.className="sprite-info";
-    info.innerHTML=`<div class="sprite-title"><div class="dot" style="background:${sp.dot}"></div><span class="sname">${sp.name}</span><span class="cost-tag">✨ ${sp.cost.toLocaleString()}</span></div><div class="ability">${sp.ab}</div>`;
+    info.innerHTML=`<div class="sprite-title"><img src="${sp.imgs.b}" class="row-icon" alt="${sp.name}"/><span class="sname">${sp.name}</span><span class="cost-tag"><img src="Sprite_Dust_-_Icon_-_Fortnite.webp" style="height:12px;width:12px;object-fit:contain;vertical-align:middle;margin-right:2px;"/> ${sp.cost.toLocaleString()}</span></div><div class="ability">${sp.ab}</div>`;
     row.appendChild(info);
     VV.forEach(v=>{
       const off=sp.noV&&v!=="b";
