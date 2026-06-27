@@ -6,6 +6,7 @@
   <title>FNSpots — Fortnite Sprite Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="sprites.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -115,6 +116,38 @@
 
     /* TOAST */
     .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;font-family:var(--fn);font-size:12px;letter-spacing:.05em;padding:9px 20px;border-radius:99px;z-index:200;transition:opacity .4s;pointer-events:none;}
+
+    /* SHARE MODAL */
+    .share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .share-overlay.open{opacity:1;pointer-events:all;}
+    .share-modal{background:#F5F0E8;border-radius:20px;padding:24px;width:340px;display:flex;flex-direction:column;gap:14px;position:relative;max-height:90vh;overflow-y:auto;}
+    .share-modal-title{font-family:var(--fn);font-size:18px;letter-spacing:.06em;color:#2A2520;text-align:center;}
+    .share-close{position:absolute;top:12px;right:14px;font-size:16px;cursor:pointer;color:#8A8278;background:none;border:none;}
+
+    /* SHARE CARD */
+    .card-preview{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+    #shareCard{width:300px;background:linear-gradient(135deg,#1a0545 0%,#3a1c71 40%,#7b3fb0 70%,#0d0221 100%);padding:24px;font-family:'Luckiest Guy',sans-serif;position:relative;overflow:hidden;}
+    #shareCard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(255,255,255,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(127,119,221,.2) 0%,transparent 50%);}
+    .card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;position:relative;}
+    .card-logo{font-size:20px;letter-spacing:.06em;color:#fff;}
+    .card-sub{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.06em;}
+    .card-gamertag{font-size:26px;letter-spacing:.06em;color:#fff;margin-bottom:4px;position:relative;}
+    .card-pct{font-size:52px;letter-spacing:.04em;color:#fff;line-height:1;position:relative;}
+    .card-count{font-size:13px;color:rgba(255,255,255,.6);letter-spacing:.05em;margin-bottom:16px;position:relative;}
+    .card-bar-wrap{width:100%;height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin-bottom:16px;position:relative;}
+    .card-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#7f77dd,#D4537E);}
+    .card-sprites{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;position:relative;}
+    .card-sprite{width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2);}
+    .card-sprite img{width:36px;height:36px;object-fit:contain;}
+    .card-footer{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.05em;position:relative;}
+    .card-url{color:rgba(255,255,255,.7);}
+
+    .share-actions{display:flex;gap:8px;flex-wrap:wrap;}
+    .share-action-btn{flex:1;font-family:'Luckiest Guy',sans-serif;font-size:11px;letter-spacing:.05em;padding:10px;border-radius:10px;border:none;cursor:pointer;transition:all .15s;text-align:center;}
+    .share-action-btn.primary{background:#7f77dd;color:#fff;}
+    .share-action-btn.primary:hover{background:#6560c5;}
+    .share-action-btn.secondary{background:#EDE8DF;color:#2A2520;border:1px solid #D8D0C4;}
+    .share-action-btn.secondary:hover{background:#D8D0C4;}
   </style>
 </head>
 <body>
@@ -133,6 +166,7 @@
       </div>
     </div>
     <a href="/compare" style="font-family:'Luckiest Guy',sans-serif;font-size:11px;letter-spacing:.05em;padding:7px 16px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);text-decoration:none;white-space:nowrap;">🤝 Compare</a>
+    <button onclick="openShareCard()" style="font-family:'Luckiest Guy',sans-serif;font-size:11px;letter-spacing:.05em;padding:7px 16px;border-radius:99px;border:1.5px solid #D4537E;color:#D4537E;background:transparent;cursor:pointer;white-space:nowrap;">📸 Share</button>
     <button class="auth-btn" id="authBtn" onclick="openModal()">🔓 Save Progress</button>
   </div>
 </div>
@@ -404,6 +438,97 @@ function resetAll(){
 renderFields();
 buildGrid();
 initAuth();
+</script>
+
+<!-- SHARE OVERLAY -->
+<div class="share-overlay" id="shareOverlay" onclick="handleShareOverlay(event)">
+  <div class="share-modal">
+    <button class="share-close" onclick="closeShareCard()">✕</button>
+    <div class="share-modal-title">Share your collection</div>
+    <div class="card-preview">
+      <div id="shareCard">
+        <div class="card-header">
+          <div>
+            <div class="card-logo">FNSpots ✨</div>
+            <div class="card-sub">BY GAMERMISTERE</div>
+          </div>
+        </div>
+        <div class="card-gamertag" id="cardGamertag">Player</div>
+        <div class="card-pct" id="cardPct">0%</div>
+        <div class="card-count" id="cardCount">0 / 107 SPRITES</div>
+        <div class="card-bar-wrap"><div class="card-bar-fill" id="cardBar" style="width:0%"></div></div>
+        <div class="card-sprites" id="cardSprites"></div>
+        <div class="card-footer">fnspots.com/u/<span class="card-url" id="cardUrl">-</span></div>
+      </div>
+    </div>
+    <div class="share-actions">
+      <button class="share-action-btn primary" onclick="downloadCard()">⬇️ Download PNG</button>
+      <button class="share-action-btn secondary" onclick="copyShareLink()">🔗 Copy Link</button>
+    </div>
+    <div style="font-size:10px;color:#8A8278;text-align:center;font-family:'Luckiest Guy',sans-serif;letter-spacing:.04em;">Share on Threads · X · Discord</div>
+  </div>
+</div>
+
+<script>
+function openShareCard(){
+  // Build card data from current state
+  const total=parseInt(document.getElementById("pcount").textContent.split("/")[0].trim())||0;
+  const pct=parseInt(document.getElementById("ppct").textContent)||0;
+  const tag=user?user.tag:"Player";
+
+  document.getElementById("cardGamertag").textContent=tag;
+  document.getElementById("cardPct").textContent=pct+"%";
+  document.getElementById("cardCount").textContent=total+" / 107 SPRITES";
+  document.getElementById("cardBar").style.width=pct+"%";
+  document.getElementById("cardUrl").textContent=tag;
+
+  // Show top 6 collected base sprites
+  const cardSprites=document.getElementById("cardSprites");
+  cardSprites.innerHTML="";
+  let shown=0;
+  SPRITES.forEach((sp,si)=>{
+    if(shown>=6)return;
+    if(state[`${si}-b`]){
+      const div=document.createElement("div");
+      div.className="card-sprite";
+      div.innerHTML=`<img src="/${sp.imgs.b}" alt="${sp.name}"/>`;
+      cardSprites.appendChild(div);
+      shown++;
+    }
+  });
+
+  document.getElementById("shareOverlay").classList.add("open");
+}
+
+function closeShareCard(){document.getElementById("shareOverlay").classList.remove("open");}
+function handleShareOverlay(e){if(e.target===document.getElementById("shareOverlay"))closeShareCard();}
+
+async function downloadCard(){
+  const card=document.getElementById("shareCard");
+  const btn=event.target;
+  btn.textContent="Generating...";btn.disabled=true;
+  try{
+    const canvas=await html2canvas(card,{scale:3,backgroundColor:null,useCORS:true,allowTaint:true});
+    const link=document.createElement("a");
+    link.download=`fnspots-${user?.tag||"collection"}.png`;
+    link.href=canvas.toDataURL("image/png");
+    link.click();
+    btn.textContent="✅ Downloaded!";
+    setTimeout(()=>{btn.textContent="⬇️ Download PNG";btn.disabled=false;},2000);
+  }catch(e){
+    console.error(e);
+    btn.textContent="⬇️ Download PNG";btn.disabled=false;
+  }
+}
+
+function copyShareLink(){
+  const tag=user?user.tag:"";
+  const url=tag?`https://fnspots.com/u/${tag}`:"https://fnspots.com";
+  navigator.clipboard.writeText(url);
+  const btn=event.target;
+  btn.textContent="✅ Copied!";
+  setTimeout(()=>btn.textContent="🔗 Copy Link",2000);
+}
 </script>
 </body>
 </html>
