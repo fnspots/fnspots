@@ -176,7 +176,7 @@ async function loadProfile(){
     const card=document.createElement("div");
     card.className="sprite-card"+(collected?" collected":"");
     card.innerHTML=`
-      <img src="${sp.imgs.b}" alt="${sp.name}" loading="lazy"/>
+      <img src="/${sp.imgs.b}" alt="${sp.name}" loading="lazy"/>
       <div class="sprite-card-name">${sp.name}</div>
       ${level>0?`<div class="sprite-card-lvl">${level===5?"★ MAX":"Lv "+level}</div>`:""}
     `;
