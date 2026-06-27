@@ -305,10 +305,21 @@ function updBtn(){
   const btn=document.getElementById("authBtn");
   if(user){
     btn.className="auth-btn logged";
-    btn.innerHTML=`<div class="auth-avatar">${user.tag[0].toUpperCase()}</div>${user.tag}`;
-    btn.onclick=async()=>{if(confirm("Log out "+user.tag+"?")){await sb.auth.signOut();user=null;state={};localStorage.removeItem(KEY);updBtn();upd();}};
+    btn.innerHTML=`<div class="auth-avatar">${user.tag[0].toUpperCase()}</div>${user.tag} <span style="font-size:9px;opacity:.6;margin-left:2px;">↗</span>`;
+    btn.onclick=()=>window.open(`/u/${user.tag}`,"_blank");
+    // Add logout as separate small link
+    let logoutBtn=document.getElementById("logoutBtn");
+    if(!logoutBtn){
+      logoutBtn=document.createElement("button");
+      logoutBtn.id="logoutBtn";
+      logoutBtn.style.cssText="font-family:'Luckiest Guy',sans-serif;font-size:10px;letter-spacing:.04em;padding:4px 10px;border-radius:99px;border:.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;";
+      logoutBtn.textContent="Log out";
+      logoutBtn.onclick=async()=>{if(confirm("Log out?")){await sb.auth.signOut();user=null;state={};localStorage.removeItem(KEY);document.getElementById("logoutBtn")?.remove();updBtn();upd();}};
+      btn.parentNode.insertBefore(logoutBtn,btn.nextSibling);
+    }
   } else {
     btn.className="auth-btn";btn.innerHTML="🔓 Save Progress";btn.onclick=openModal;
+    document.getElementById("logoutBtn")?.remove();
   }
 }
 function toast(msg){
