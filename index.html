@@ -148,6 +148,57 @@
     .share-action-btn.primary:hover{background:#6560c5;}
     .share-action-btn.secondary{background:#EDE8DF;color:#2A2520;border:1px solid #D8D0C4;}
     .share-action-btn.secondary:hover{background:#D8D0C4;}
+
+    /* ============ MOBILE ONLY ============ */
+    @media (max-width: 768px) {
+
+      /* 1. Lock header — title, icons, social links stay */
+      .header { flex-wrap: nowrap; align-items: flex-start; gap: 6px; }
+      .header-left { flex-shrink: 0; }
+      .header-title { font-size: 18px; }
+      .header-sub { font-size: 9px; }
+
+      /* 2. Progress bar — shrink 0/107, keep % big */
+      .progress-count { font-size: 9px; }
+      .progress-pct { font-size: 26px; }
+      .progress-bar { width: 80px; height: 5px; }
+      .progress-wrap { gap: 2px; }
+      .progress-row { gap: 4px; align-items: baseline; }
+      .header-right { gap: 6px; flex-wrap: nowrap; align-items: center; }
+
+      /* 3. Move nav buttons below progress */
+      .mobile-nav { display: flex !important; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+      .auth-btn { font-size: 10px; padding: 5px 10px; }
+      #logoutBtn { font-size: 10px; padding: 5px 10px; }
+
+      /* Hide nav links from header on mobile */
+      .header-right > a, .header-right > button:not(#authBtn):not(#logoutBtn) { display: none; }
+
+      /* 4. First column sprite image smaller (.5x) */
+      .row-icon { width: 54px !important; height: 54px !important; }
+      .sname { font-size: 10px; }
+      .ability { font-size: 8px; }
+      .cost-tag { font-size: 8px; }
+      .cost-tag img { height: 14px !important; width: 14px !important; }
+      .sprite-info { padding: 2px; gap: 2px; }
+      .sprite-meta { gap: 2px; }
+
+      /* 5. Variant columns bigger, fit screen */
+      .variants-row { grid-template-columns: 90px repeat(6, 1fr); gap: 3px; }
+      .sprite-row { grid-template-columns: 90px repeat(6, 1fr); gap: 3px; margin-bottom: 3px; }
+      .sep-wrap { grid-template-columns: 90px repeat(6, 1fr); gap: 3px; }
+      .variants-row span { font-size: 9px; padding: 4px 1px; border-radius: 5px; }
+      .cell { border-radius: 6px; }
+      .cell .lk { font-size: 9px; }
+      .sw { padding: 0 1px; }
+      input.lvl { height: 3px; }
+      .ll { font-size: 7px; min-height: 10px; }
+
+      /* Footer pills smaller */
+      .footer { gap: 4px; margin-top: 8px; }
+      .pill { font-size: 9px; padding: 2px 8px; }
+      .rbtn { font-size: 9px; padding: 2px 10px; }
+    }
   </style>
 </head>
 <body>
@@ -199,6 +250,12 @@
   </div>
 </div>
 
+<div class="mobile-nav" style="display:none;">
+  <a href="/about" style="font-family:'Anton',sans-serif;font-size:10px;letter-spacing:.05em;padding:5px 12px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);text-decoration:none;">About</a>
+  <a href="/compare" style="font-family:'Anton',sans-serif;font-size:10px;letter-spacing:.05em;padding:5px 12px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);text-decoration:none;">🤝 Compare</a>
+  <button onclick="openShareCard()" style="font-family:'Anton',sans-serif;font-size:10px;letter-spacing:.05em;padding:5px 12px;border-radius:99px;border:1.5px solid #D4537E;color:#D4537E;background:transparent;cursor:pointer;">📸 Share</button>
+  <button id="mobileAuthBtn" onclick="openModal()" style="font-family:'Anton',sans-serif;font-size:10px;letter-spacing:.05em;padding:5px 12px;border-radius:99px;border:1.5px solid #7f77dd;color:#7f77dd;background:transparent;cursor:pointer;">🔓 Save Progress</button>
+</div>
 <div class="variants-row">
   <span></span>
   <span class="v-base">Base</span>
