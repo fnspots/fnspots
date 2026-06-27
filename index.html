@@ -3,584 +3,278 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FNSpots — Fortnite Sprite Tracker</title>
+  <title>FNSpots — About</title>
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-  <script src="sprites.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
-    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;}
-    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem 1rem;}
+    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:2rem 1rem;}
 
     /* HEADER */
-    .header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap;padding-bottom:4px;}
-    .header-left{display:flex;flex-direction:column;gap:3px;}
-    .header-title{font-family:var(--fn);font-size:52px;letter-spacing:.06em;color:#2A2520;line-height:1;}
-    .header-sub{font-family:var(--fn);font-size:12px;letter-spacing:.07em;color:var(--muted);line-height:1;margin-top:2px;}
-    .icon-wrap{display:inline-flex;align-items:center;gap:10px;vertical-align:middle;}
-    .sprite-icon{height:52px;width:52px;object-fit:contain;border-radius:12px;animation:iconGlow 3s linear infinite;}
-    @keyframes iconGlow{
-      0%  {filter:drop-shadow(0 0 8px rgba(255,100,100,0.95));}
-      14% {filter:drop-shadow(0 0 8px rgba(255,165,0,0.95));}
-      28% {filter:drop-shadow(0 0 8px rgba(255,220,0,0.95));}
-      42% {filter:drop-shadow(0 0 8px rgba(0,220,130,0.95));}
-      57% {filter:drop-shadow(0 0 8px rgba(0,200,255,0.95));}
-      71% {filter:drop-shadow(0 0 8px rgba(130,100,240,0.95));}
-      85% {filter:drop-shadow(0 0 8px rgba(255,100,180,0.95));}
-      100%{filter:drop-shadow(0 0 8px rgba(255,100,100,0.95));}
-    }
-    .header-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
-    .progress-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
-    .progress-bar{width:180px;height:9px;background:var(--border);border-radius:99px;overflow:hidden;}
-    .progress-fill{height:100%;border-radius:99px;background:#7f77dd;transition:width .3s;}
-    .progress-row{display:flex;align-items:baseline;gap:7px;}
-    .progress-count{font-family:var(--fn);font-size:26px;color:var(--muted);}
-    .progress-pct{font-family:var(--fn);font-size:52px;color:#2A2520;line-height:1;}
-    .auth-btn{font-family:var(--fn);font-size:15px;letter-spacing:.05em;padding:10px 22px;border-radius:99px;border:2px solid #7f77dd;color:#7f77dd;background:transparent;cursor:pointer;white-space:nowrap;transition:all .15s;}
-    .auth-btn:hover{background:#7f77dd;color:#fff;}
-    .auth-btn.logged{border-color:var(--border-strong);color:var(--muted);display:flex;align-items:center;gap:7px;}
-    .auth-avatar{width:24px;height:24px;border-radius:50%;background:#7f77dd;display:flex;align-items:center;justify-content:center;font-size:11px;color:#fff;font-family:var(--fn);}
+    .site-header{display:flex;align-items:center;gap:10px;margin-bottom:2.5rem;}
+    .site-brand{display:flex;flex-direction:column;gap:3px;}
+    .site-title{font-family:var(--fn);font-size:22px;letter-spacing:.06em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;}
+    .site-title img{height:24px;width:24px;object-fit:contain;}
+    .site-sub{font-family:var(--fn);font-size:10px;letter-spacing:.06em;color:var(--muted);}
+    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;white-space:nowrap;}
+    .back-btn:hover{background:var(--surface);}
 
-    /* MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-    .modal-overlay.open{opacity:1;pointer-events:all;}
-    .modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;box-shadow:0 8px 40px rgba(0,0,0,.12);padding:26px;width:310px;display:flex;flex-direction:column;gap:14px;position:relative;}
-    .modal-title{font-family:var(--fn);font-size:20px;letter-spacing:.06em;color:#2A2520;text-align:center;}
-    .modal-sub{font-size:11px;color:var(--muted);text-align:center;margin-top:-8px;}
-    .modal-tabs{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
-    .tab{flex:1;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:7px;text-align:center;cursor:pointer;color:var(--muted);background:var(--surface2);transition:all .15s;}
-    .tab.active{background:#7f77dd;color:#fff;}
-    .modal-fields{display:flex;flex-direction:column;gap:8px;}
-    .field-label{font-family:var(--fn);font-size:10px;letter-spacing:.05em;color:var(--muted);margin-bottom:2px;}
-    .field-input{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:#2A2520;font-size:13px;outline:none;transition:border .15s;}
-    .field-input:focus{border-color:#7f77dd;}
-    .modal-cta{font-family:var(--fn);font-size:13px;letter-spacing:.06em;padding:11px;border-radius:10px;border:none;background:#7f77dd;color:#fff;cursor:pointer;transition:background .15s;}
-    .modal-cta:hover{background:#6560c5;}
-    .modal-error{font-size:11px;color:#D4537E;text-align:center;min-height:14px;}
-    .modal-close{position:absolute;top:13px;right:15px;font-size:17px;cursor:pointer;color:var(--muted);background:none;border:none;}
-    .modal-footer{font-size:10px;color:var(--muted);text-align:center;}
+    .page-wrap{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem;}
 
-    /* VARIANTS ROW */
-    .variants-row{display:grid;grid-template-columns:220px repeat(6,1fr);gap:5px;margin-bottom:6px;}
-    .variants-row span{font-family:var(--fn);font-size:10px;text-align:center;padding:5px 3px;border-radius:8px;letter-spacing:.05em;cursor:default;}
+    /* SECTION CARD */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;display:flex;flex-direction:column;gap:1.25rem;}
+    .card-title{font-family:var(--fn);font-size:28px;letter-spacing:.05em;color:var(--text);display:flex;align-items:center;gap:10px;}
+    .card-title img{height:32px;width:32px;object-fit:contain;}
+    .card-subtitle{font-family:var(--fn);font-size:13px;letter-spacing:.05em;color:var(--muted);}
 
-    .v-base{background:linear-gradient(135deg,#c8c5be,#edeae3 40%,#b0ada6 60%,#e5e2db);color:#3a3830;border:1px solid #a5a29b;text-shadow:0 1px 0 rgba(255,255,255,.6);}
-    .v-gold{background:linear-gradient(135deg,#9a7000,#ffd700 20%,#ffe566 42%,#c8960a 58%,#ffe066 76%,#9a7000);color:#3d2800;border:1px solid #a07800;text-shadow:0 1px 0 rgba(255,220,50,.6);box-shadow:inset 0 1px 0 rgba(255,255,180,.4);}
-    .v-gummy{background:linear-gradient(135deg,#e06080,#fac0d0 30%,#ff8fab 52%,#fcd8e8 72%,#d04868);color:#5c0020;border:1px solid #c0406a;text-shadow:0 1px 0 rgba(255,200,210,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.35);}
-    .v-galaxy{background:linear-gradient(135deg,#0d0221,#3a1c71 22%,#7b3fb0 42%,#a060d0 55%,#4b1082 72%,#8040f8);color:#e0c8ff;border:1px solid #6b2fa0;text-shadow:0 0 8px rgba(180,100,255,.9);box-shadow:inset 0 1px 0 rgba(200,150,255,.2);}
-    .v-holo{background:linear-gradient(115deg,#ff6b6b,#ffa500 14%,#ffe000 26%,#00e888 40%,#00cfff 52%,#7b68ee 64%,#ff69b4 76%,#ff6b6b 90%);background-size:250% 250%;color:#1a0a2e;border:1px solid rgba(255,255,255,.5);text-shadow:0 1px 0 rgba(255,255,255,.7);box-shadow:inset 0 1px 0 rgba(255,255,255,.5);animation:holo 3s linear infinite;position:relative;overflow:hidden;}
-    .v-holo::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(50deg,transparent 0px,rgba(255,255,255,.07) 1px,transparent 2px,transparent 5px);pointer-events:none;}
+    p{font-size:13px;color:var(--muted);line-height:1.7;}
+    p strong{color:var(--text);}
+
+    /* VARIANT GRID */
+    .variant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+    .variant-item{border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;}
+    .variant-name{font-family:var(--fn);font-size:13px;letter-spacing:.05em;}
+    .variant-desc{font-size:11px;line-height:1.4;opacity:.85;}
+
+    .v-base{background:linear-gradient(135deg,#c8c5be,#edeae3 40%,#b0ada6 60%,#e5e2db);color:#3a3830;border:1px solid #a5a29b;}
+    .v-gold{background:linear-gradient(135deg,#9a7000,#ffd700 20%,#ffe566 42%,#c8960a 58%,#9a7000);color:#3d2800;border:1px solid #a07800;}
+    .v-gummy{background:linear-gradient(135deg,#e06080,#fac0d0 30%,#ff8fab 52%,#d04868);color:#5c0020;border:1px solid #c0406a;}
+    .v-galaxy{background:linear-gradient(135deg,#0d0221,#3a1c71 22%,#7b3fb0 42%,#8040f8);color:#e0c8ff;border:1px solid #6b2fa0;}
+    .v-holo{background:linear-gradient(115deg,#ff6b6b,#ffa500 14%,#ffe000 26%,#00e888 40%,#00cfff 52%,#7b68ee 64%,#ff69b4 76%,#ff6b6b 90%);background-size:250% 250%;color:#1a0a2e;border:1px solid rgba(255,255,255,.5);animation:holo 3s linear infinite;position:relative;overflow:hidden;}
     @keyframes holo{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-    .v-gem{background:linear-gradient(155deg,#b8e0f8,#fff 12%,#60c0e8 28%,#1a90c8 46%,#fff 54%,#50b0d8 68%,#1060a0 84%,#b0d8f5);color:#002840;border:1px solid #2090c0;text-shadow:0 1px 0 rgba(255,255,255,.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 0 8px rgba(30,140,200,.2);position:relative;overflow:hidden;}
-    .v-gem::before{content:'';position:absolute;top:0;left:20%;width:30%;height:55%;background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,transparent 100%);border-radius:0 0 50% 50%;pointer-events:none;}
+    .v-gem{background:linear-gradient(155deg,#b8e0f8,#fff 12%,#60c0e8 28%,#1a90c8 46%,#fff 54%,#1060a0 84%,#b0d8f5);color:#002840;border:1px solid #2090c0;}
 
-    /* GRID */
-    .sprite-row{display:grid;grid-template-columns:220px repeat(6,1fr);gap:5px;margin-bottom:5px;align-items:start;}
-    .sprite-info{display:flex;flex-direction:column;gap:4px;padding:3px 5px;overflow:hidden;}
-    .sprite-title{display:flex;align-items:center;gap:7px;}
-    .sprite-meta{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;}
-    .row-icon{width:108px;height:108px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 4px 8px rgba(0,0,0,0.25));}
-    .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-    .sname{font-family:var(--fn);font-size:13px;color:#2A2520;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
-    .cost-tag{font-size:9px;color:var(--muted);white-space:nowrap;display:flex;align-items:center;}
-    .ability{font-size:9px;color:var(--muted);line-height:1.4;padding-left:15px;}
-    .cell-wrap{display:flex;flex-direction:column;align-items:center;gap:3px;}
-    .cell{width:100%;aspect-ratio:1;border-radius:9px;border:1.5px solid var(--border);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none;overflow:hidden;position:relative;}
-    .cell:hover{border-color:var(--border-strong);transform:scale(1.06);}
-    .cell:active{transform:scale(0.94);}
-    .cell img{width:86%;height:86%;object-fit:contain;opacity:.3;filter:grayscale(70%);transition:all .2s;pointer-events:none;}
-    .cell.unlocked img{opacity:1;filter:none;}
-    .cell .lk{position:absolute;font-size:12px;color:var(--muted);pointer-events:none;transition:opacity .15s;}
-    .cell.unlocked .lk{opacity:0;}
-    .cell.off{opacity:.15;cursor:not-allowed;pointer-events:none;}
-    .cell.b.unlocked{border:2px solid #888780;}
-    .cell.go.unlocked{border:2px solid #EF9F27;box-shadow:0 0 6px #EF9F2788;}
-    .cell.gu.unlocked{border:2px solid #D4537E;box-shadow:0 0 6px #D4537E88;}
-    .cell.ga.unlocked{border:2px solid #7F77DD;box-shadow:0 0 6px #7F77DD88;}
-    .cell.h.unlocked{border:2px solid #1D9E75;box-shadow:0 0 6px #1D9E7588;}
-    .cell.ge.unlocked{border:2px solid #378ADD;box-shadow:0 0 6px #378ADD88;}
-    .sw{width:100%;padding:0 2px;}
-    input.lvl{width:100%;height:4px;accent-color:#7f77dd;cursor:pointer;}
-    input.lvl.m{accent-color:#EF9F27;}
-    .ll{font-family:var(--fn);font-size:9px;color:var(--muted);text-align:center;min-height:12px;letter-spacing:.04em;}
-    .sep-wrap{display:grid;grid-template-columns:220px repeat(6,1fr);gap:5px;}
-    .sep{height:.5px;background:var(--border);margin:2px 0;grid-column:1/-1;}
+    /* XP TABLE */
+    .xp-table{width:100%;border-collapse:collapse;font-size:12px;}
+    .xp-table th{font-family:var(--fn);font-size:11px;letter-spacing:.05em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);}
+    .xp-table td{padding:8px;border-bottom:1px solid var(--border);color:var(--text);}
+    .xp-table tr:last-child td{border-bottom:none;}
+    .xp-val{font-family:var(--fn);font-size:13px;color:var(--purple);}
 
-    /* FOOTER */
-    .footer{margin-top:1.25rem;display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
-    .pill{font-family:var(--fn);font-size:11px;letter-spacing:.04em;padding:4px 11px;border-radius:99px;border:.5px solid var(--border);color:var(--muted);background:var(--surface);}
-    .pill strong{color:#2A2520;}
-    .rbtn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.04em;padding:4px 14px;border-radius:99px;border:.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;}
-    .rbtn:hover{background:var(--surface);}
+    /* LEVEL PILLS */
+    .level-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .level-pill{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:80px;}
+    .level-pill.mastered{border-color:#EF9F27;background:#FFF8E6;}
+    .level-num{font-family:var(--fn);font-size:20px;color:var(--text);}
+    .level-pill.mastered .level-num{color:#EF9F27;}
+    .level-desc{font-size:10px;color:var(--muted);}
 
-    /* TOAST */
-    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;font-family:var(--fn);font-size:12px;letter-spacing:.05em;padding:9px 20px;border-radius:99px;z-index:200;transition:opacity .4s;pointer-events:none;}
+    /* DIVIDER */
+    .divider{height:.5px;background:var(--border);}
 
-    /* SHARE MODAL */
-    .share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-    .share-overlay.open{opacity:1;pointer-events:all;}
-    .share-modal{background:#F5F0E8;border-radius:20px;padding:24px;width:340px;display:flex;flex-direction:column;gap:14px;position:relative;max-height:90vh;overflow-y:auto;}
-    .share-modal-title{font-family:var(--fn);font-size:18px;letter-spacing:.06em;color:#2A2520;text-align:center;}
-    .share-close{position:absolute;top:12px;right:14px;font-size:16px;cursor:pointer;color:#8A8278;background:none;border:none;}
+    /* ABOUT ME */
+    .creator-top{display:flex;align-items:center;gap:1rem;}
+    .creator-avatar{width:64px;height:64px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--fn);font-size:28px;color:#fff;flex-shrink:0;animation:iconGlow 3s linear infinite;}
+    @keyframes iconGlow{
+      0%{box-shadow:0 0 10px rgba(255,100,100,.9);}14%{box-shadow:0 0 10px rgba(255,165,0,.9);}28%{box-shadow:0 0 10px rgba(255,220,0,.9);}
+      42%{box-shadow:0 0 10px rgba(0,220,130,.9);}57%{box-shadow:0 0 10px rgba(0,200,255,.9);}71%{box-shadow:0 0 10px rgba(130,100,240,.9);}
+      85%{box-shadow:0 0 10px rgba(255,100,180,.9);}100%{box-shadow:0 0 10px rgba(255,100,100,.9);}
+    }
+    .creator-info{flex:1;}
+    .creator-name{font-family:var(--fn);font-size:24px;letter-spacing:.05em;color:var(--text);}
+    .creator-handle{font-size:12px;color:var(--muted);margin-top:2px;}
 
-    /* SHARE CARD */
-    .card-preview{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);}
-    #shareCard{width:300px;background:linear-gradient(135deg,#1a0545 0%,#3a1c71 40%,#7b3fb0 70%,#0d0221 100%);padding:24px;font-family:'Anton',sans-serif;position:relative;overflow:hidden;}
-    #shareCard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(255,255,255,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(127,119,221,.2) 0%,transparent 50%);}
-    .card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;position:relative;}
-    .card-logo{font-size:20px;letter-spacing:.06em;color:#fff;}
-    .card-sub{font-size:9px;color:rgba(255,255,255,.5);letter-spacing:.06em;}
-    .card-gamertag{font-size:26px;letter-spacing:.06em;color:#fff;margin-bottom:4px;position:relative;}
-    .card-pct{font-size:52px;letter-spacing:.04em;color:#fff;line-height:1;position:relative;}
-    .card-count{font-size:13px;color:rgba(255,255,255,.6);letter-spacing:.05em;margin-bottom:16px;position:relative;}
-    .card-bar-wrap{width:100%;height:6px;background:rgba(255,255,255,.15);border-radius:99px;overflow:hidden;margin-bottom:16px;position:relative;}
-    .card-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#7f77dd,#D4537E);}
-    .card-sprites{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;position:relative;}
-    .card-sprite{width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.2);}
-    .card-sprite img{width:36px;height:36px;object-fit:contain;}
-    .card-footer{font-size:10px;color:rgba(255,255,255,.4);letter-spacing:.05em;position:relative;}
-    .card-url{color:rgba(255,255,255,.7);}
+    .social-links{display:flex;gap:10px;flex-wrap:wrap;}
+    .social-link{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;text-decoration:none;font-family:var(--fn);font-size:13px;letter-spacing:.04em;transition:opacity .15s;border:1px solid transparent;}
+    .social-link:hover{opacity:.8;}
+    .social-link.threads{background:#2A2520;color:#fff;}
+    .social-link.instagram{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}
+    .social-link.youtube{background:#FF0000;color:#fff;}
+    .social-link svg{flex-shrink:0;}
 
-    .share-actions{display:flex;gap:8px;flex-wrap:wrap;}
-    .share-action-btn{flex:1;font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.05em;padding:10px;border-radius:10px;border:none;cursor:pointer;transition:all .15s;text-align:center;}
-    .share-action-btn.primary{background:#7f77dd;color:#fff;}
-    .share-action-btn.primary:hover{background:#6560c5;}
-    .share-action-btn.secondary{background:#EDE8DF;color:#2A2520;border:1px solid #D8D0C4;}
-    .share-action-btn.secondary:hover{background:#D8D0C4;}
+    .creator-code{background:linear-gradient(135deg,#0d0221,#3a1c71 40%,#7b3fb0);border-radius:14px;padding:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .code-label{font-size:11px;color:rgba(255,255,255,.6);font-family:var(--fn);letter-spacing:.06em;}
+    .code-value{font-family:var(--fn);font-size:28px;letter-spacing:.08em;color:#fff;}
+    .code-desc{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+    .code-copy{font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:8px 16px;border-radius:99px;border:1.5px solid rgba(255,255,255,.4);color:#fff;background:transparent;cursor:pointer;margin-left:auto;white-space:nowrap;transition:all .15s;}
+    .code-copy:hover{background:rgba(255,255,255,.15);}
   </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <span class="header-title"><span class="icon-wrap"><img src="Sprites_Icon_Fortnite_FNSpots.webp" class="sprite-icon" alt="Sprite"/>FNSpots</span></span>
-    <span class="header-sub">by GamerMisterE</span>
-    <div style="display:flex;gap:6px;margin-top:3px;align-items:center;">
-      <a href="https://www.threads.com/@gamermistere" target="_blank" title="Threads" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#2A2520;transition:opacity .15s;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
-        <svg width="22" height="22" viewBox="0 0 192 192" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.503 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.372-39.134 15.265-38.105 34.569.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.204 17.11 97.013 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.07 0h-.113C68.882.195 47.292 9.642 32.788 28.08 19.882 44.485 13.224 67.315 13.001 96v.027c.224 28.684 6.882 51.514 19.788 67.918 14.504 18.438 36.094 27.884 64.269 28.08h.114c25.16-.171 42.874-6.768 57.496-21.376 19.006-18.991 18.415-42.532 12.152-57.083-4.368-10.176-12.741-18.414-25.283-24.578Z"/></svg>
-      </a>
-      <a href="https://www.instagram.com/gamermistere" target="_blank" title="Instagram" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);transition:opacity .15s;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
-      </a>
-      <a href="https://www.youtube.com/@gamermistere" target="_blank" title="YouTube" style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#FF0000;transition:opacity .15s;" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-      </a>
+<div class="site-header">
+  <div class="site-brand">
+    <a href="/" class="site-title">
+      <img src="/Sprites_Icon_Fortnite_FNSpots.webp" alt="FNSpots"/>FNSpots <span style="font-size:13px;color:var(--purple);">BETA</span>
+    </a>
+    <span class="site-sub">by GamerMisterE</span>
+  </div>
+  <a href="/" class="back-btn">← Back to Tracker</a>
+</div>
+
+<div class="page-wrap">
+
+  <!-- ABOUT SPRITES -->
+  <div class="card">
+    <div class="card-title">
+      <img src="/Sprites_Icon_Fortnite_FNSpots.webp" alt="Sprites"/>
+      Fortnite Sprites Explained
+    </div>
+    <p>Sprites are basically <strong>collectible companions that give you passive perks in matches</strong>. You equip one before the game, level it up while playing, and if you successfully extract it, you keep all its progress forever.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">HOW DO YOU GET SPRITES?</div>
+    <p>When you first play Chapter 7 Season 3, you pick one starter Sprite:</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;">🔥 Fire</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;">💧 Water</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;">🌍 Earth</div>
+    </div>
+    <p>After that, you unlock more by <strong>finding them during matches and extracting them</strong>.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">HOW DO SPRITES LEVEL UP?</div>
+    <p>Your equipped Sprite earns Sprite XP from normal gameplay. Things that give Sprite XP:</p>
+    <table class="xp-table" style="margin-top:6px;">
+      <tr><th>Action</th><th>XP</th></tr>
+      <tr><td>📦 Opening chests and ammo boxes</td><td><span class="xp-val">75</span></td></tr>
+      <tr><td>🤝 Assists</td><td><span class="xp-val">75</span></td></tr>
+      <tr><td>💀 Knock an opponent</td><td><span class="xp-val">100</span></td></tr>
+      <tr><td>🏆 Extracting Sprites</td><td><span class="xp-val">100+</span></td></tr>
+      <tr><td>💀 Eliminations</td><td><span class="xp-val">200</span></td></tr>
+      <tr><td>👑 Victory Royale</td><td><span class="xp-val">Bonus</span></td></tr>
+    </table>
+    <p>Every Sprite can reach <strong>Level 5</strong>. Once you extract a Level 5 Sprite, it's considered <strong>Mastered forever</strong>.</p>
+    <div class="level-row">
+      <div class="level-pill"><div class="level-num">1</div><div class="level-desc">Starting level</div></div>
+      <div class="level-pill"><div class="level-num">2</div><div class="level-desc">Getting stronger</div></div>
+      <div class="level-pill"><div class="level-num">3</div><div class="level-desc">Mid tier</div></div>
+      <div class="level-pill"><div class="level-num">4</div><div class="level-desc">Almost there</div></div>
+      <div class="level-pill mastered"><div class="level-num">5</div><div class="level-desc">★ Mastered!</div></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">⚠️ HERE'S THE CATCH</div>
+    <p>If you <strong>die or leave the match before extracting</strong>, you lose the Sprite you were carrying. Its levels aren't gone forever — you just didn't permanently save that progress. That's why extraction is one of the biggest parts of the mode.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">HOW DO YOU KEEP A SPRITE?</div>
+    <p>There are three ways to permanently keep a Sprite:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);">📦 Use an <strong>Extraction Site</strong></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);">📱 Use a <strong>Portable Extractor</strong></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);">👑 <strong>Win the match</strong> (Victory Royale)</div>
+    </div>
+    <p>Successfully extracting a Sprite: permanently unlocks it, saves all the levels it earned, and gives you <strong>Sprite Dust</strong>.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">WHAT IS SPRITE DUST?</div>
+    <p>Sprite Dust is the <strong>currency for the whole Sprite system</strong>. You use it to:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">✨ Summon unlocked Sprites</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">⬆️ Upgrade Sprite rarity</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">📱 Buy Portable Extractors</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">📦 Buy daily XP boosts</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">🔍 Scan for nearby Sprites</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">SPRITE ABILITIES</div>
+    <p>Every Sprite has its own passive ability. Some are simple, while others completely change how you play:</p>
+    <table class="xp-table" style="margin-top:6px;">
+      <tr><th>Sprite</th><th>Ability</th></tr>
+      <tr><td>💧 Water</td><td>Heals shields while in water</td></tr>
+      <tr><td>🔥 Fire</td><td>Fire burst after dealing enough damage</td></tr>
+      <tr><td>🌍 Earth</td><td>Better chest loot</td></tr>
+      <tr><td>🌬️ Air</td><td>Faster sprinting and higher jumps</td></tr>
+      <tr><td>👑 Boss</td><td>Increases max Health and Shield</td></tr>
+      <tr><td>🥜 Burnt Peanut</td><td>Small chance for extra loot including Mythics</td></tr>
+    </table>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">VARIANTS</div>
+    <p>Almost every Sprite can come in <strong>special variants</strong>. These aren't different Sprites — they're different versions of the same Sprite, each with an extra bonus.</p>
+    <div class="variant-grid">
+      <div class="variant-item v-gold"><div class="variant-name">🟨 Gold</div><div class="variant-desc">More Sprite XP from eliminations</div></div>
+      <div class="variant-item v-gummy"><div class="variant-name">🍬 Gummy</div><div class="variant-desc">More Sprite Dust when extracted</div></div>
+      <div class="variant-item v-galaxy"><div class="variant-name">🌌 Galaxy</div><div class="variant-desc">More ammo pickups</div></div>
+      <div class="variant-item v-gem"><div class="variant-name">💎 Gem</div><div class="variant-desc">Less fall damage</div></div>
+      <div class="variant-item v-holo"><div class="variant-name">✨ Holofoil</div><div class="variant-desc">Better chance to find rare Sprites</div></div>
+    </div>
+    <p>Some variants are much rarer than others. <strong>Burnt Peanut is the only Sprite that doesn't have special variants.</strong></p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">CAN YOU TRADE SPRITES?</div>
+    <p><strong>No.</strong> You can't trade, gift, or sell Sprites. Every Sprite and every variant has to be <strong>found and extracted by you</strong>.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">WHY PEOPLE ARE GRINDING THEM</div>
+    <p>The goal isn't just getting every Sprite. Players are trying to:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">✅ Unlock every base Sprite</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">🎨 Find every special variant</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">⭐ Master every Sprite to Level 5</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">🏆 Complete the full collection</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">🎁 Unlock milestone rewards</div>
+    </div>
+    <p style="margin-top:8px;">That's why <strong>FNSpots</strong> is actually useful — it lets you instantly see what you've collected, what's still missing, and how close you are to 100%.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">SPECIAL VARIANTS</div>
+    <div class="variant-grid">
+      <div class="variant-item v-base"><div class="variant-name">Base</div><div class="variant-desc">Standard Sprite — the foundation of your collection</div></div>
+      <div class="variant-item v-gold"><div class="variant-name">Gold</div><div class="variant-desc">3x bonus Sprite XP from eliminations</div></div>
+      <div class="variant-item v-gummy"><div class="variant-name">Gummy</div><div class="variant-desc">20% more Sprite Dust on extraction</div></div>
+      <div class="variant-item v-galaxy"><div class="variant-name">Galaxy</div><div class="variant-desc">30% more ammo whenever picked up</div></div>
+      <div class="variant-item v-holo"><div class="variant-name">Holofoil</div><div class="variant-desc">30% chance squad finds rare Sprites from containers</div></div>
+      <div class="variant-item v-gem"><div class="variant-name">Gem</div><div class="variant-desc">30% damage reduction to Fall Damage</div></div>
     </div>
   </div>
-  <div class="header-right">
-    <div class="progress-wrap">
-      <div class="progress-bar"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
-      <div class="progress-row">
-        <span class="progress-count" id="pcount">0 / 107</span>
-        <span class="progress-pct" id="ppct">0%</span>
+
+  <!-- ABOUT GAMERMISTERE -->
+  <div class="card">
+    <div class="creator-top">
+      <div class="creator-avatar">G</div>
+      <div class="creator-info">
+        <div class="creator-name">GamerMisterE</div>
+        <div class="creator-handle">Fortnite Content Creator · Sprite Hunter</div>
       </div>
     </div>
-    <a href="/compare" style="font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.05em;padding:7px 16px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);text-decoration:none;white-space:nowrap;">🤝 Compare</a>
-    <button onclick="openShareCard()" style="font-family:'Anton',sans-serif;font-size:11px;letter-spacing:.05em;padding:7px 16px;border-radius:99px;border:1.5px solid #D4537E;color:#D4537E;background:transparent;cursor:pointer;white-space:nowrap;">📸 Share</button>
-    <button class="auth-btn" id="authBtn" onclick="openModal()">🔓 Save Progress</button>
-  </div>
-</div>
 
-<div class="modal-overlay" id="modalOverlay" onclick="handleOverlay(event)">
-  <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title"><img src="Sprites_Icon_Fortnite_FNSpots.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:6px;" alt="Sprite"/>FNSpots</div>
-    <div class="modal-sub" id="mSub">Save your collection across devices</div>
-    <div class="modal-tabs">
-      <div class="tab active" id="tCreate" onclick="switchTab('create')">Create Account</div>
-      <div class="tab" id="tLogin" onclick="switchTab('login')">Log In</div>
+    <p>Hi! I'm <strong>GamerMisterE</strong>.</p>
+    <p>I built this tracker because I wanted a better way to keep track of my Sprite collection. I couldn't find a simple tool that showed what I had, what I was missing, and how close I was to 100% — so I decided to make one.</p>
+    <p>This project is <strong>built by a Fortnite player, for Fortnite players</strong>. My goal is to keep it free, easy to use, and updated whenever Epic adds new Sprites, variants, or mechanics.</p>
+    <p>If this tracker helps you on your collection journey, consider supporting future updates by using creator code <strong style="color:var(--purple);">GAMERMISTERE</strong> in the Fortnite Item Shop. Every bit of support helps me continue building free tools for the community.</p>
+    <p>Follow me for Fortnite news, guides, updates, and future projects across all my socials below.</p>
+    <p>Have a suggestion, feature request, or found a bug? <strong>Shoot me a DM on any of my socials</strong> — I read every message and your feedback helps improve the tracker for everyone.</p>
+    <p>Thanks for stopping by, and good luck completing your collection! 💙</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">FOLLOW ME</div>
+    <div class="social-links">
+      <a href="https://www.threads.com/@gamermistere" target="_blank" class="social-link threads">
+        <svg width="16" height="16" viewBox="0 0 192 192" fill="white"><path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.503 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.372-39.134 15.265-38.105 34.569.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.204 17.11 97.013 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.07 0h-.113C68.882.195 47.292 9.642 32.788 28.08 19.882 44.485 13.224 67.315 13.001 96v.027c.224 28.684 6.882 51.514 19.788 67.918 14.504 18.438 36.094 27.884 64.269 28.08h.114c25.16-.171 42.874-6.768 57.496-21.376 19.006-18.991 18.415-42.532 12.152-57.083-4.368-10.176-12.741-18.414-25.283-24.578Z"/></svg>
+        Threads
+      </a>
+      <a href="https://www.instagram.com/gamermistere" target="_blank" class="social-link instagram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        Instagram
+      </a>
+      <a href="https://www.youtube.com/@gamermistere" target="_blank" class="social-link youtube">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        YouTube
+      </a>
     </div>
-    <div class="modal-fields" id="mFields"></div>
-    <div class="modal-error" id="mErr"></div>
-    <button class="modal-cta" id="mCta" onclick="handleAuth().catch(e=>console.error(e))">Create Account</button>
-    <div class="modal-footer">Your progress saves automatically ✨</div>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">SUPPORT IN FORTNITE</div>
+    <div class="creator-code">
+      <div>
+        <div class="code-label">EPIC CREATOR CODE</div>
+        <div class="code-value">GAMERMISTERE</div>
+        <div class="code-desc">Use in the Fortnite Item Shop to support the channel</div>
+      </div>
+      <button class="code-copy" onclick="copyCode(this)">Copy Code</button>
+    </div>
   </div>
-</div>
 
-<div class="variants-row">
-  <span></span>
-  <span class="v-base">Base</span>
-  <span class="v-gold">Gold</span>
-  <span class="v-gummy">Gummy</span>
-  <span class="v-galaxy">Galaxy</span>
-  <span class="v-holo">Holofoil</span>
-  <span class="v-gem">Gem</span>
-</div>
-
-<div id="grid"></div>
-
-<div class="footer">
-  <span class="pill">Base <strong id="s-b">0/18</strong></span>
-  <span class="pill">Gold <strong id="s-go">0/17</strong></span>
-  <span class="pill">Gummy <strong id="s-gu">0/17</strong></span>
-  <span class="pill">Galaxy <strong id="s-ga">0/17</strong></span>
-  <span class="pill">Holofoil <strong id="s-h">0/17</strong></span>
-  <span class="pill">Gem <strong id="s-ge">0/17</strong></span>
-  <button class="rbtn" onclick="resetAll()">Reset</button>
 </div>
 
 <script>
-const VV=["b","go","gu","ga","h","ge"];
-const KEY="fnspots-v4";
-let state={};try{state=JSON.parse(localStorage.getItem(KEY)||"{}");}catch(e){}
-let user=null,curTab="create";
-
-// Supabase
-const SURL="https://rjqxkgdnmypfuvsgfeuh.supabase.co";
-const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqcXhrZ2RubXlwZnV2c2dmZXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MzY1MTMsImV4cCI6MjA5ODExMjUxM30.Y3Z1xIZ3W5shIyHdoTz59EOoKs8q_iSN1yspFvNLsWQ";
-const sb=supabase.createClient(SURL,SKEY);
-
-// Check existing session on load
-async function initAuth(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",session.user.id).single();
-    if(profile){user={tag:profile.gamertag,email:session.user.email,id:session.user.id};updBtn();await loadProgress();}
-  }
-}
-
-async function loadProgress(){
-  if(!user)return;
-  const {data}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",user.id);
-  if(data&&data.length){
-    // Reset state first
-    state={};
-    data.forEach(r=>{
-      if(r.unlocked)state[r.sprite_key]=true;
-      if(r.level>0)state[r.sprite_key+"-lv"]=r.level;
-    });
-    localStorage.setItem(KEY,JSON.stringify(state));
-  }
-  // Always refresh UI after load
-  refreshUI();
-}
-
-function refreshUI(){
-  // Update all cells based on current state
-  document.querySelectorAll(".cell").forEach(cell=>{
-    const ck=cell.dataset.ck;
-    if(!ck)return;
-    cell.classList.toggle("unlocked",!!state[ck]);
-  });
-  // Update all sliders
-  document.querySelectorAll("input.lvl").forEach(sl=>{
-    const lk=sl.dataset.lk;
-    const lb=sl.nextElementSibling;
-    if(!lk)return;
-    const si=parseInt(sl.dataset.si);
-    const v=sl.dataset.v;
-    const cur=state[lk]||0;
-    sl.value=cur;
-    if(cur===0){lb.textContent="";sl.className="lvl";}
-    else if(cur===5){lb.textContent="★ MASTERED";lb.style.color="#EF9F27";sl.className="lvl m";}
-    else{lb.textContent="Lv "+cur;lb.style.color="var(--muted)";sl.className="lvl";}
-  });
-  upd();
-}
-
-async function syncProgress(spriteKey){
-  if(!user)return;
-  const unlocked=!!state[spriteKey];
-  const level=state[spriteKey+"-lv"]||0;
-  await sb.from("progress").upsert({user_id:user.id,sprite_key:spriteKey,unlocked,level,updated_at:new Date().toISOString()},{onConflict:"user_id,sprite_key"});
-}
-
-function openModal(){
-  if(user){if(confirm("Logged in as "+user.tag+"\n\nLog out?")){user=null;updBtn();}return;}
-  renderFields();document.getElementById("modalOverlay").classList.add("open");
-}
-function closeModal(){document.getElementById("modalOverlay").classList.remove("open");}
-function handleOverlay(e){if(e.target===document.getElementById("modalOverlay"))closeModal();}
-function switchTab(t){
-  curTab=t;
-  document.getElementById("tCreate").classList.toggle("active",t==="create");
-  document.getElementById("tLogin").classList.toggle("active",t==="login");
-  document.getElementById("mCta").textContent=t==="create"?"Create Account":"Log In";
-  document.getElementById("mSub").textContent=t==="create"?"Save your collection across devices":"Welcome back!";
-  document.getElementById("mErr").textContent="";
-  renderFields();
-}
-function renderFields(){
-  document.getElementById("mFields").innerHTML=curTab==="create"
-    ?`<div><div class="field-label">Gamertag</div><input class="field-input" id="f-tag" placeholder="e.g. Mutron" maxlength="20"></div><div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Min. 6 characters"></div>`
-    :`<div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Your password"></div>`;
-}
-async function handleAuth(){
-  const err=document.getElementById("mErr");err.textContent="";
-  const email=document.getElementById("f-email")?.value.trim();
-  const pass=document.getElementById("f-pass")?.value;
-  if(!email||!pass){err.textContent="Please fill in all fields.";return;}
-  if(pass.length<6){err.textContent="Password must be at least 6 characters.";return;}
-  const cta=document.getElementById("mCta");
-  cta.textContent="...";cta.disabled=true;
-
-  if(curTab==="create"){
-    const tag=document.getElementById("f-tag")?.value.trim();
-    if(!tag){err.textContent="Gamertag is required.";cta.textContent="Create Account";cta.disabled=false;return;}
-    // Check gamertag not taken
-    const {data:existing}=await sb.from("profiles").select("gamertag").eq("gamertag",tag).single();
-    if(existing){err.textContent="Gamertag already taken.";cta.textContent="Create Account";cta.disabled=false;return;}
-    const {data,error}=await sb.auth.signUp({email,password:pass});
-    if(error){err.textContent=error.message;cta.textContent="Create Account";cta.disabled=false;return;}
-    await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
-    user={tag,email,id:data.user.id};
-    closeModal();updBtn();
-    toast("Account created! Progress saved ✨");
-  } else {
-    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error){console.error("Login error:",error);err.textContent=error.message||"Login failed. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
-    if(!data||!data.user){err.textContent="No user returned. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
-    let {data:profile,error:pe}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
-    if(pe||!profile){
-      // Profile missing — ask for gamertag to create it
-      const tag=prompt("Welcome! Please enter your gamertag to complete setup:");
-      if(!tag){err.textContent="Gamertag required.";cta.textContent="Log In";cta.disabled=false;await sb.auth.signOut();return;}
-      const {error:ie}=await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
-      if(ie){err.textContent="Could not create profile: "+ie.message;cta.textContent="Log In";cta.disabled=false;return;}
-      profile={gamertag:tag};
-    }
-    user={tag:profile.gamertag,email,id:data.user.id};
-    closeModal();updBtn();
-    await loadProgress();
-    toast("Welcome back "+user.tag+" ✨");
-  }
-  cta.disabled=false;
-}
-function updBtn(){
-  const btn=document.getElementById("authBtn");
-  if(user){
-    btn.className="auth-btn logged";
-    btn.innerHTML=`<div class="auth-avatar">${user.tag[0].toUpperCase()}</div>${user.tag} <span style="font-size:9px;opacity:.6;margin-left:2px;">↗</span>`;
-    btn.onclick=()=>window.open(`/u/${user.tag}`,"_blank");
-    // Add logout as separate small link
-    let logoutBtn=document.getElementById("logoutBtn");
-    if(!logoutBtn){
-      logoutBtn=document.createElement("button");
-      logoutBtn.id="logoutBtn";
-      logoutBtn.style.cssText="font-family:'Anton',sans-serif;font-size:10px;letter-spacing:.04em;padding:4px 10px;border-radius:99px;border:.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;";
-      logoutBtn.textContent="Log out";
-      logoutBtn.onclick=async()=>{if(confirm("Log out?")){await sb.auth.signOut();user=null;state={};localStorage.removeItem(KEY);document.getElementById("logoutBtn")?.remove();updBtn();resetUI();}};
-      btn.parentNode.insertBefore(logoutBtn,btn.nextSibling);
-    }
-  } else {
-    btn.className="auth-btn";btn.innerHTML="🔓 Save Progress";btn.onclick=openModal;
-    document.getElementById("logoutBtn")?.remove();
-  }
-}
-function toast(msg){
-  const p=document.createElement("div");p.className="toast";p.textContent=msg;
-  document.body.appendChild(p);
-  setTimeout(()=>{p.style.opacity="0";setTimeout(()=>p.remove(),400);},2500);
-}
-
-function buildGrid(){
-  const grid=document.getElementById("grid");
-  SPRITES.forEach((sp,si)=>{
-    if(si>0){
-      const sw=document.createElement("div");sw.className="sep-wrap";
-      const s=document.createElement("div");s.className="sep";
-      sw.appendChild(s);grid.appendChild(sw);
-    }
-    const row=document.createElement("div");row.className="sprite-row";
-    const info=document.createElement("div");info.className="sprite-info";
-    info.innerHTML=`<div class="sprite-title"><img src="${sp.imgs.b}" class="row-icon" alt="${sp.name}"/><div class="sprite-meta"><span class="sname">${sp.name}</span><span class="cost-tag"><img src="Sprite_Dust_-_Icon_-_Fortnite.webp" style="height:24px;width:24px;object-fit:contain;vertical-align:middle;margin-right:4px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"/> ${sp.cost.toLocaleString()}</span></div></div><div class="ability">${sp.ab}</div>`;
-    row.appendChild(info);
-    VV.forEach(v=>{
-      const off=sp.noV&&v!=="b";
-      const ck=`${si}-${v}`;const lk=`${si}-${v}-lv`;
-      const file=sp.imgs[v]||"";
-      const wrap=document.createElement("div");wrap.className="cell-wrap";
-      const cell=document.createElement("div");cell.className=`cell ${v}${off?" off":""}`;
-      cell.dataset.ck=ck;
-      if(!off&&state[ck])cell.classList.add("unlocked");
-      if(file){const img=document.createElement("img");img.src=file;img.alt=sp.name;img.loading="lazy";cell.appendChild(img);}
-      const lkEl=document.createElement("span");lkEl.className="lk";lkEl.textContent=off?"":"🔒";cell.appendChild(lkEl);
-      const sw2=document.createElement("div");sw2.className="sw";
-      const sl=document.createElement("input");sl.type="range";sl.className="lvl";sl.min=0;sl.max=5;sl.step=1;sl.value=off?0:(state[lk]||0);sl.disabled=off;if(off)sl.style.opacity=".15";
-      sl.dataset.lk=lk;sl.dataset.si=si;sl.dataset.v=v;
-      const lb=document.createElement("div");lb.className="ll";
-      if(!off){
-        cell.onclick=()=>{state[ck]=!state[ck];if(!state[ck])state[lk]=0;cell.classList.toggle("unlocked",state[ck]);rfr(si,v,sl,lb);save(ck);upd();};
-        sl.oninput=()=>{const val=parseInt(sl.value);state[lk]=val;if(val>0&&!state[ck]){state[ck]=true;cell.classList.add("unlocked");}if(val===0){state[ck]=false;cell.classList.remove("unlocked");}rfr(si,v,sl,lb);save(ck);upd();};
-      }
-      rfr(si,v,sl,lb);sw2.appendChild(sl);sw2.appendChild(lb);wrap.appendChild(cell);wrap.appendChild(sw2);row.appendChild(wrap);
-    });
-    grid.appendChild(row);
-  });
-  upd();
-}
-
-function resetUI(){
-  state={};
-  document.querySelectorAll(".cell").forEach(c=>c.classList.remove("unlocked"));
-  document.querySelectorAll("input.lvl").forEach(s=>{s.value=0;s.className="lvl";});
-  document.querySelectorAll(".ll").forEach(l=>{l.textContent="";l.style.color="";});
-  upd();
-}
-function rfr(si,v,sl,lb){const c=state[`${si}-${v}-lv`]||0;sl.value=c;if(c===0){lb.textContent="";sl.className="lvl";}else if(c===5){lb.textContent="★ MASTERED";lb.style.color="#EF9F27";sl.className="lvl m";}else{lb.textContent=`Lv ${c}`;lb.style.color="var(--muted)";sl.className="lvl";}}
-function save(spriteKey){
-  try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
-  if(user&&spriteKey)syncProgress(spriteKey);
-}
-function upd(){
-  const c={b:0,go:0,gu:0,ga:0,h:0,ge:0};let t=0;
-  SPRITES.forEach((sp,si)=>VV.forEach(v=>{if(sp.noV&&v!=="b")return;if(state[`${si}-${v}`]){t++;c[v]++;}}));
-  const p=Math.round(t/107*100);
-  document.getElementById("pbar").style.width=p+"%";
-  document.getElementById("pcount").textContent=`${t} / 107`;
-  document.getElementById("ppct").textContent=`${p}%`;
-  document.getElementById("s-b").textContent=c.b+"/18";
-  document.getElementById("s-go").textContent=c.go+"/17";
-  document.getElementById("s-gu").textContent=c.gu+"/17";
-  document.getElementById("s-ga").textContent=c.ga+"/17";
-  document.getElementById("s-h").textContent=c.h+"/17";
-  document.getElementById("s-ge").textContent=c.ge+"/17";
-}
-function resetAll(){
-  if(!confirm("Reset all progress?"))return;
-  state={};try{localStorage.removeItem(KEY);}catch(e){}
-  document.querySelectorAll(".cell").forEach(c=>c.classList.remove("unlocked"));
-  document.querySelectorAll("input.lvl").forEach(s=>s.value=0);
-  document.querySelectorAll(".ll").forEach(l=>l.textContent="");
-  upd();
-}
-
-renderFields();
-buildGrid();
-initAuth();
-</script>
-
-<!-- SHARE OVERLAY -->
-<div class="share-overlay" id="shareOverlay" onclick="handleShareOverlay(event)">
-  <div class="share-modal">
-    <button class="share-close" onclick="closeShareCard()">✕</button>
-    <div class="share-modal-title">Share your collection</div>
-    <div class="card-preview">
-      <div id="shareCard">
-        <div class="card-header">
-          <div>
-            <div class="card-logo"><img src="/Sprites_Icon_Fortnite_FNSpots.webp" style="height:18px;width:18px;object-fit:contain;vertical-align:middle;margin-right:4px;"/>FNSpots</div>
-            <div class="card-sub">BY GAMERMISTERE</div>
-          </div>
-        </div>
-        <div class="card-gamertag" id="cardGamertag">Player</div>
-        <div class="card-pct" id="cardPct">0%</div>
-        <div class="card-count" id="cardCount">0 / 107 SPRITES</div>
-        <div class="card-bar-wrap"><div class="card-bar-fill" id="cardBar" style="width:0%"></div></div>
-        <div class="card-sprites" id="cardSprites"></div>
-        <div class="card-footer">fnspots.com/u/<span class="card-url" id="cardUrl">-</span></div>
-      </div>
-    </div>
-    <div class="share-actions">
-      <button class="share-action-btn primary" onclick="downloadCard()">📤 Share Image</button>
-      <button class="share-action-btn secondary" onclick="copyShareLink()">🔗 Copy Link</button>
-    </div>
-    <div style="font-size:10px;color:#8A8278;text-align:center;font-family:'Anton',sans-serif;letter-spacing:.04em;">Share on Threads · X · Discord</div>
-    <div style="background:#EDE8DF;border-radius:12px;padding:14px;font-size:11px;color:#2A2520;line-height:1.7;text-align:center;">
-      <div style="font-family:'Anton',sans-serif;font-size:15px;letter-spacing:.05em;margin-bottom:6px;">Thank you for using FNSpots! 🙏</div>
-      If you want to support, follow <strong>@GamerMisterE</strong> on<br/>
-      <a href="https://www.threads.com/@gamermistere" target="_blank" style="color:#7f77dd;text-decoration:none;font-weight:bold;">Threads</a> · 
-      <a href="https://www.instagram.com/gamermistere" target="_blank" style="color:#D4537E;text-decoration:none;font-weight:bold;">Instagram</a> · 
-      <a href="https://www.youtube.com/@gamermistere" target="_blank" style="color:#D85A30;text-decoration:none;font-weight:bold;">YouTube</a><br/><br/>
-      Use Epic Creator Code <strong style="color:#7f77dd;font-size:13px;">GAMERMISTERE</strong><br/>in the Fortnite Item Shop!<br/>
-      <span style="font-size:10px;color:#8A8278;">Every support means the world ✨</span>
-    </div>
-  </div>
-</div>
-
-<script>
-function openShareCard(){
-  // Build card data from current state
-  const total=parseInt(document.getElementById("pcount").textContent.split("/")[0].trim())||0;
-  const pct=parseInt(document.getElementById("ppct").textContent)||0;
-  const tag=user?user.tag:"Player";
-
-  document.getElementById("cardGamertag").textContent=tag;
-  document.getElementById("cardPct").textContent=pct+"%";
-  document.getElementById("cardCount").textContent=total+" / 107 SPRITES";
-  document.getElementById("cardBar").style.width=pct+"%";
-  document.getElementById("cardUrl").textContent=tag;
-
-  // Show top 6 collected sprites with variant dots
-  const cardSprites=document.getElementById("cardSprites");
-  cardSprites.innerHTML="";
-  const VV_CARD=["b","go","gu","ga","h","ge"];
-  const VV_DOT_COLORS={b:"#888780",go:"#ffd700",gu:"#ff8fab",ga:"#8040f8",h:"linear-gradient(135deg,#ff6b6b,#00cfff)",ge:"#60c0e8"};
-  let shown=0;
-  SPRITES.forEach((sp,si)=>{
-    if(shown>=6)return;
-    const anyCollected=VV_CARD.some(v=>!(sp.noV&&v!=="b")&&state[`${si}-${v}`]);
-    if(anyCollected){
-      const dots=VV_CARD.map(v=>{
-        if(sp.noV&&v!=="b")return`<div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.1);"></div>`;
-        const have=state[`${si}-${v}`];
-        return`<div style="width:6px;height:6px;border-radius:50%;background:${have?VV_DOT_COLORS[v]:'rgba(255,255,255,.15)'};"></div>`;
-      }).join("");
-      const div=document.createElement("div");
-      div.className="card-sprite";
-      div.style.flexDirection="column";
-      div.style.gap="3px";
-      div.innerHTML=`<img src="/${sp.imgs.b}" alt="${sp.name}" style="width:32px;height:32px;object-fit:contain;"/><div style="display:flex;gap:2px;justify-content:center;">${dots}</div>`;
-      cardSprites.appendChild(div);
-      shown++;
-    }
-  });
-
-  document.getElementById("shareOverlay").classList.add("open");
-}
-
-function closeShareCard(){document.getElementById("shareOverlay").classList.remove("open");}
-function handleShareOverlay(e){if(e.target===document.getElementById("shareOverlay"))closeShareCard();}
-
-async function downloadCard(){
-  const card=document.getElementById("shareCard");
-  const btn=event.target;
-  btn.textContent="Generating...";btn.disabled=true;
-  try{
-    const canvas=await html2canvas(card,{scale:3,backgroundColor:null,useCORS:true,allowTaint:true});
-    const dataUrl=canvas.toDataURL("image/png");
-    // Try Web Share API first (mobile)
-    if(navigator.share&&navigator.canShare){
-      canvas.toBlob(async(blob)=>{
-        const file=new File([blob],`fnspots-${user?.tag||"collection"}.png`,{type:"image/png"});
-        if(navigator.canShare({files:[file]})){
-          await navigator.share({
-            title:`My FNSpots Collection`,
-            text:`I've collected ${document.getElementById("cardCount").textContent} on FNSpots! Check it out 👉 fnspots.com/u/${user?.tag||""}`,
-            files:[file]
-          });
-          btn.textContent="✅ Shared!";
-        } else {
-          fallbackDownload(dataUrl);
-          btn.textContent="✅ Downloaded!";
-        }
-        setTimeout(()=>{btn.textContent="📤 Share Image";btn.disabled=false;},2000);
-      });
-    } else {
-      fallbackDownload(dataUrl);
-      btn.textContent="✅ Downloaded!";
-      setTimeout(()=>{btn.textContent="📤 Share Image";btn.disabled=false;},2000);
-    }
-  }catch(e){
-    console.error(e);
-    btn.textContent="📤 Share Image";btn.disabled=false;
-  }
-}
-function fallbackDownload(dataUrl){
-  const link=document.createElement("a");
-  link.download=`fnspots-${user?.tag||"collection"}.png`;
-  link.href=dataUrl;
-  link.click();
-}
-
-function copyShareLink(){
-  const tag=user?user.tag:"";
-  const url=tag?`https://fnspots.com/u/${tag}`:"https://fnspots.com";
-  navigator.clipboard.writeText(url);
-  const btn=event.target;
+function copyCode(btn){
+  navigator.clipboard.writeText("GAMERMISTERE");
   btn.textContent="✅ Copied!";
-  setTimeout(()=>btn.textContent="🔗 Copy Link",2000);
+  setTimeout(()=>btn.textContent="Copy Code",2000);
 }
 </script>
 </body>
