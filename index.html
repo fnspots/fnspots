@@ -263,8 +263,15 @@ async function handleAuth(){
     const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
     if(error){console.error("Login error:",error);err.textContent=error.message||"Login failed. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
     if(!data||!data.user){err.textContent="No user returned. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
-    const {data:profile,error:pe}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
-    if(pe||!profile){console.error("Profile error:",pe);err.textContent="Profile not found. Contact support.";cta.textContent="Log In";cta.disabled=false;return;}
+    let {data:profile,error:pe}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
+    if(pe||!profile){
+      // Profile missing — ask for gamertag to create it
+      const tag=prompt("Welcome! Please enter your gamertag to complete setup:");
+      if(!tag){err.textContent="Gamertag required.";cta.textContent="Log In";cta.disabled=false;await sb.auth.signOut();return;}
+      const {error:ie}=await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
+      if(ie){err.textContent="Could not create profile: "+ie.message;cta.textContent="Log In";cta.disabled=false;return;}
+      profile={gamertag:tag};
+    }
     user={tag:profile.gamertag,email,id:data.user.id};
     closeModal();updBtn();
     await loadProgress();
