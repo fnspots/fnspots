@@ -198,17 +198,39 @@ async function loadProgress(){
   if(!user)return;
   const {data}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",user.id);
   if(data&&data.length){
+    // Reset state first
+    state={};
     data.forEach(r=>{
       if(r.unlocked)state[r.sprite_key]=true;
       if(r.level>0)state[r.sprite_key+"-lv"]=r.level;
     });
     localStorage.setItem(KEY,JSON.stringify(state));
-    // Refresh UI
-    document.querySelectorAll(".cell").forEach(c=>c.classList.remove("unlocked"));
-    document.querySelectorAll("input.lvl").forEach(s=>s.value=0);
-    document.querySelectorAll(".ll").forEach(l=>l.textContent="");
-    buildGrid();
   }
+  // Always refresh UI after load
+  refreshUI();
+}
+
+function refreshUI(){
+  // Update all cells based on current state
+  document.querySelectorAll(".cell").forEach(cell=>{
+    const ck=cell.dataset.ck;
+    if(!ck)return;
+    cell.classList.toggle("unlocked",!!state[ck]);
+  });
+  // Update all sliders
+  document.querySelectorAll("input.lvl").forEach(sl=>{
+    const lk=sl.dataset.lk;
+    const lb=sl.nextElementSibling;
+    if(!lk)return;
+    const si=parseInt(sl.dataset.si);
+    const v=sl.dataset.v;
+    const cur=state[lk]||0;
+    sl.value=cur;
+    if(cur===0){lb.textContent="";sl.className="lvl";}
+    else if(cur===5){lb.textContent="★ MASTERED";lb.style.color="#EF9F27";sl.className="lvl m";}
+    else{lb.textContent="Lv "+cur;lb.style.color="var(--muted)";sl.className="lvl";}
+  });
+  upd();
 }
 
 async function syncProgress(spriteKey){
@@ -313,11 +335,13 @@ function buildGrid(){
       const file=sp.imgs[v]||"";
       const wrap=document.createElement("div");wrap.className="cell-wrap";
       const cell=document.createElement("div");cell.className=`cell ${v}${off?" off":""}`;
+      cell.dataset.ck=ck;
       if(!off&&state[ck])cell.classList.add("unlocked");
       if(file){const img=document.createElement("img");img.src=file;img.alt=sp.name;img.loading="lazy";cell.appendChild(img);}
       const lkEl=document.createElement("span");lkEl.className="lk";lkEl.textContent=off?"":"🔒";cell.appendChild(lkEl);
       const sw2=document.createElement("div");sw2.className="sw";
       const sl=document.createElement("input");sl.type="range";sl.className="lvl";sl.min=0;sl.max=5;sl.step=1;sl.value=off?0:(state[lk]||0);sl.disabled=off;if(off)sl.style.opacity=".15";
+      sl.dataset.lk=lk;sl.dataset.si=si;sl.dataset.v=v;
       const lb=document.createElement("div");lb.className="ll";
       if(!off){
         cell.onclick=()=>{state[ck]=!state[ck];if(!state[ck])state[lk]=0;cell.classList.toggle("unlocked",state[ck]);rfr(si,v,sl,lb);save(ck);upd();};
