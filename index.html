@@ -12,10 +12,10 @@
     body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem 1rem;}
 
     /* HEADER */
-    .header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap;}
+    .header{display:flex;align-items:center;gap:12px;margin-bottom:1.5rem;flex-wrap:wrap;padding-bottom:4px;}
     .header-left{display:flex;flex-direction:column;gap:3px;}
-    .header-title{font-family:var(--fn);font-size:26px;letter-spacing:.06em;color:#2A2520;line-height:1;}
-    .header-sub{font-family:var(--fn);font-size:10px;letter-spacing:.07em;color:var(--muted);line-height:1;}
+    .header-title{font-family:var(--fn);font-size:52px;letter-spacing:.06em;color:#2A2520;line-height:1;}
+    .header-sub{font-family:var(--fn);font-size:12px;letter-spacing:.07em;color:var(--muted);line-height:1;margin-top:2px;}
     .header-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
     .progress-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
     .progress-bar{width:130px;height:7px;background:var(--border);border-radius:99px;overflow:hidden;}
@@ -106,7 +106,7 @@
 
 <div class="header">
   <div class="header-left">
-    <span class="header-title">FNSpots ✨</span>
+    <span class="header-title"><img src="Sprites_Icon_Fortnite_FNSpots.webp" style="height:52px;width:52px;object-fit:contain;vertical-align:middle;margin-right:8px;" alt="Sprite"/>FNSpots</span>
     <span class="header-sub">by gamermistere</span>
   </div>
   <div class="header-right">
@@ -124,7 +124,7 @@
 <div class="modal-overlay" id="modalOverlay" onclick="handleOverlay(event)">
   <div class="modal">
     <button class="modal-close" onclick="closeModal()">✕</button>
-    <div class="modal-title">FNSpots ✨</div>
+    <div class="modal-title"><img src="Sprites_Icon_Fortnite_FNSpots.webp" style="height:28px;width:28px;object-fit:contain;vertical-align:middle;margin-right:6px;" alt="Sprite"/>FNSpots</div>
     <div class="modal-sub" id="mSub">Save your collection across devices</div>
     <div class="modal-tabs">
       <div class="tab active" id="tCreate" onclick="switchTab('create')">Create Account</div>
