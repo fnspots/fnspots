@@ -147,7 +147,7 @@
     </div>
     <div class="modal-fields" id="mFields"></div>
     <div class="modal-error" id="mErr"></div>
-    <button class="modal-cta" id="mCta" onclick="handleAuth()">Create Account</button>
+    <button class="modal-cta" id="mCta" onclick="handleAuth().catch(e=>console.error(e))">Create Account</button>
     <div class="modal-footer">Your progress saves automatically ✨</div>
   </div>
 </div>
@@ -261,8 +261,10 @@ async function handleAuth(){
     toast("Account created! Progress saved ✨");
   } else {
     const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error){err.textContent="Invalid email or password.";cta.textContent="Log In";cta.disabled=false;return;}
-    const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
+    if(error){console.error("Login error:",error);err.textContent=error.message||"Login failed. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
+    if(!data||!data.user){err.textContent="No user returned. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
+    const {data:profile,error:pe}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
+    if(pe||!profile){console.error("Profile error:",pe);err.textContent="Profile not found. Contact support.";cta.textContent="Log In";cta.disabled=false;return;}
     user={tag:profile.gamertag,email,id:data.user.id};
     closeModal();updBtn();
     await loadProgress();
