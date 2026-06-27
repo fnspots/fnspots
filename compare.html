@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FNSpots — Profile</title>
+  <title>FNSpots — Compare</title>
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/sprites.js"></script>
@@ -12,77 +12,55 @@
     :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
     body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:2rem 1rem;}
 
-    /* HEADER */
     .site-header{display:flex;align-items:center;gap:10px;margin-bottom:2rem;}
     .site-title{font-family:var(--fn);font-size:18px;letter-spacing:.06em;color:var(--text);text-decoration:none;}
     .site-sub{font-family:var(--fn);font-size:9px;letter-spacing:.06em;color:var(--muted);}
     .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;}
     .back-btn:hover{background:var(--surface);}
 
-    /* PROFILE CARD */
-    .profile-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:700px;margin:0 auto 2rem;}
-    .profile-top{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;}
-    .profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--fn);font-size:36px;color:#fff;flex-shrink:0;}
-    .profile-info{flex:1;}
-    .profile-name{font-family:var(--fn);font-size:32px;letter-spacing:.06em;color:var(--text);line-height:1;}
-    .profile-tag{font-size:12px;color:var(--muted);margin-top:4px;}
-    .profile-stats{display:flex;gap:1rem;margin-top:10px;flex-wrap:wrap;}
-    .stat{display:flex;flex-direction:column;gap:2px;}
-    .stat-val{font-family:var(--fn);font-size:22px;color:var(--text);line-height:1;}
-    .stat-label{font-size:10px;color:var(--muted);letter-spacing:.04em;}
+    /* SEARCH */
+    .search-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:700px;margin:0 auto 2rem;}
+    .search-title{font-family:var(--fn);font-size:20px;letter-spacing:.06em;color:var(--text);margin-bottom:6px;}
+    .search-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;}
+    .search-row{display:flex;gap:10px;flex-wrap:wrap;}
+    .search-input{flex:1;min-width:180px;padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text);font-size:14px;font-family:var(--fn);letter-spacing:.04em;outline:none;transition:border .15s;}
+    .search-input:focus{border-color:var(--purple);}
+    .search-btn{font-family:var(--fn);font-size:13px;letter-spacing:.05em;padding:10px 22px;border-radius:10px;border:none;background:var(--purple);color:#fff;cursor:pointer;transition:background .15s;}
+    .search-btn:hover{background:#6560c5;}
+    .search-error{font-size:11px;color:#D4537E;margin-top:8px;min-height:16px;font-family:var(--fn);}
 
-    /* PROGRESS */
-    .progress-section{margin-bottom:1.5rem;}
-    .progress-bar-wrap{width:100%;height:10px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:6px;}
-    .progress-fill{height:100%;border-radius:99px;background:var(--purple);transition:width .5s ease;}
-    .progress-label{font-family:var(--fn);font-size:12px;color:var(--muted);letter-spacing:.04em;}
-
-    /* VARIANT PILLS */
-    .variant-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;}
-    .vpill{font-family:var(--fn);font-size:10px;letter-spacing:.05em;padding:4px 12px;border-radius:99px;border:.5px solid var(--border);}
-    .vpill .vcount{font-size:13px;display:block;text-align:center;}
-    .v-base{background:linear-gradient(135deg,#c8c5be,#edeae3 40%,#b0ada6 60%,#e5e2db);color:#3a3830;border-color:#a5a29b;}
-    .v-gold{background:linear-gradient(135deg,#9a7000,#ffd700 20%,#ffe566 42%,#c8960a 58%,#9a7000);color:#3d2800;border-color:#a07800;}
-    .v-gummy{background:linear-gradient(135deg,#e06080,#fac0d0 30%,#ff8fab 52%,#d04868);color:#5c0020;border-color:#c0406a;}
-    .v-galaxy{background:linear-gradient(135deg,#0d0221,#3a1c71 22%,#7b3fb0 42%,#8040f8);color:#e0c8ff;border-color:#6b2fa0;}
-    .v-holo{background:linear-gradient(115deg,#ff6b6b,#ffa500 14%,#ffe000 26%,#00e888 40%,#00cfff 52%,#7b68ee 64%,#ff69b4 76%,#ff6b6b 90%);background-size:250% 250%;color:#1a0a2e;border-color:rgba(255,255,255,.5);animation:holo 3s linear infinite;}
-    @keyframes holo{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
-    .v-gem{background:linear-gradient(155deg,#b8e0f8,#fff 12%,#60c0e8 28%,#1a90c8 46%,#fff 54%,#1060a0 84%,#b0d8f5);color:#002840;border-color:#2090c0;}
-
-    /* SPRITE GRID */
-    .sprites-title{font-family:var(--fn);font-size:14px;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;}
-    .sprite-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;}
-    .sprite-card{border-radius:12px;border:1.5px solid var(--border);background:var(--surface2);padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;transition:all .15s;}
-    .sprite-card.collected{border-color:var(--purple);background:#EEEDFE40;box-shadow:0 0 8px rgba(127,119,221,.2);}
-    .sprite-card img{width:60px;height:60px;object-fit:contain;opacity:.2;filter:grayscale(80%);transition:all .2s;}
-    .sprite-card.collected img{opacity:1;filter:none;}
-    .sprite-card-name{font-family:var(--fn);font-size:9px;letter-spacing:.04em;color:var(--muted);text-align:center;}
-    .sprite-card.collected .sprite-card-name{color:var(--text);}
-    .sprite-card-lvl{font-family:var(--fn);font-size:8px;color:var(--purple);letter-spacing:.04em;}
-    .variant-dots{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;}
-    .vdot{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);transition:all .15s;}
-    .vdot.have{border-width:0;}
-    .vdot-b.have{background:#888780;}
-    .vdot-go.have{background:linear-gradient(135deg,#ffd700,#c8960a);}
-    .vdot-gu.have{background:linear-gradient(135deg,#ff8fab,#d04868);}
-    .vdot-ga.have{background:linear-gradient(135deg,#7b3fb0,#8040f8);}
-    .vdot-h.have{background:linear-gradient(115deg,#ff6b6b,#00cfff,#ff69b4);}
-    .vdot-ge.have{background:linear-gradient(135deg,#60c0e8,#1a90c8);}
-
-    /* SHARE */
-    .share-section{margin-top:1.5rem;display:flex;gap:8px;flex-wrap:wrap;}
-    .share-btn{font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:8px 16px;border-radius:99px;border:1.5px solid var(--purple);color:var(--purple);background:transparent;cursor:pointer;transition:all .15s;}
+    /* WINNER BANNER */
+    .winner-banner{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:1.5rem 2rem;max-width:700px;margin:0 auto 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .winner-trophy{font-size:40px;}
+    .winner-text{flex:1;}
+    .winner-name{font-family:var(--fn);font-size:24px;letter-spacing:.06em;color:var(--text);}
+    .winner-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+    .share-btn{font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:8px 16px;border-radius:99px;border:1.5px solid var(--purple);color:var(--purple);background:transparent;cursor:pointer;transition:all .15s;margin-left:auto;}
     .share-btn:hover{background:var(--purple);color:#fff;}
-    .share-btn.primary{background:var(--purple);color:#fff;}
-    .share-btn.primary:hover{background:#6560c5;}
 
-    /* NOT FOUND */
-    .not-found{text-align:center;padding:4rem 1rem;}
-    .not-found h2{font-family:var(--fn);font-size:28px;letter-spacing:.06em;color:var(--text);margin-bottom:8px;}
-    .not-found p{font-size:13px;color:var(--muted);}
+    /* VS HEADER */
+    .vs-header{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;max-width:700px;margin:0 auto 1rem;align-items:center;}
+    .player-col{display:flex;flex-direction:column;align-items:center;gap:4px;}
+    .player-avatar{width:50px;height:50px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--fn);font-size:22px;color:#fff;}
+    .player-avatar.them{background:#D4537E;}
+    .player-name{font-family:var(--fn);font-size:16px;letter-spacing:.05em;color:var(--text);}
+    .player-count{font-family:var(--fn);font-size:28px;color:var(--text);line-height:1;}
+    .player-pct{font-size:11px;color:var(--muted);}
+    .vs-badge{font-family:var(--fn);font-size:20px;letter-spacing:.06em;color:var(--muted);text-align:center;}
 
-    /* LOADING */
-    .loading{text-align:center;padding:4rem;font-family:var(--fn);font-size:16px;letter-spacing:.06em;color:var(--muted);}
+    /* SECTIONS */
+    .section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.25rem;max-width:700px;margin:0 auto 1rem;}
+    .section-title{font-family:var(--fn);font-size:13px;letter-spacing:.06em;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+    .section-badge{font-size:16px;}
+
+    .sprite-chips{display:flex;flex-wrap:wrap;gap:6px;}
+    .chip{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;border:1px solid var(--border);background:var(--surface2);font-size:11px;color:var(--text);}
+    .chip img{width:24px;height:24px;object-fit:contain;}
+    .chip.both{border-color:#1D9E75;background:#E1F5EE40;color:#0F6E56;}
+    .chip.mine{border-color:var(--purple);background:#EEEDFE40;color:#534AB7;}
+    .chip.theirs{border-color:#D4537E;background:#FBEAF040;color:#993556;}
+
+    .loading{text-align:center;padding:3rem;font-family:var(--fn);font-size:14px;letter-spacing:.06em;color:var(--muted);}
   </style>
   <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -96,139 +74,134 @@
   <a href="/" class="back-btn">← Back to Tracker</a>
 </div>
 
-<div id="content"><div class="loading">Loading profile...</div></div>
+<div class="search-card">
+  <div class="search-title">Compare with a Friend</div>
+  <div class="search-sub">Enter two gamertags to compare collections</div>
+  <div class="search-row">
+    <input class="search-input" id="tag1" placeholder="Your gamertag" onkeydown="if(event.key==='Enter')compare()"/>
+    <input class="search-input" id="tag2" placeholder="Friend's gamertag" onkeydown="if(event.key==='Enter')compare()"/>
+    <button class="search-btn" onclick="compare()">Compare 🤝</button>
+  </div>
+  <div class="search-error" id="searchErr"></div>
+</div>
+
+<div id="results"></div>
 
 <script>
 const SURL="https://rjqxkgdnmypfuvsgfeuh.supabase.co";
 const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqcXhrZ2RubXlwZnV2c2dmZXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MzY1MTMsImV4cCI6MjA5ODExMjUxM30.Y3Z1xIZ3W5shIyHdoTz59EOoKs8q_iSN1yspFvNLsWQ";
 const sb=supabase.createClient(SURL,SKEY);
-
 const VV=["b","go","gu","ga","h","ge"];
-const VV_LABELS={b:"Base",go:"Gold",gu:"Gummy",ga:"Galaxy",h:"Holofoil",ge:"Gem"};
-const VV_CSS={b:"v-base",go:"v-gold",gu:"v-gummy",ga:"v-galaxy",h:"v-holo",ge:"v-gem"};
-const TOTAL=107;
+const TOTAL=103;
 
-// Get gamertag from URL: /u/GamerMisterE
-const pathParts=window.location.pathname.split("/");
-const gamertag=pathParts[pathParts.indexOf("u")+1];
+// Pre-fill from URL params
+const params=new URLSearchParams(window.location.search);
+if(params.get("u1"))document.getElementById("tag1").value=params.get("u1");
+if(params.get("u2"))document.getElementById("tag2").value=params.get("u2");
+if(params.get("u1")&&params.get("u2"))compare();
 
-async function loadProfile(){
-  if(!gamertag){showNotFound();return;}
-
-  // Get profile
-  const {data:profile,error:pe}=await sb.from("profiles").select("id,gamertag,created_at").ilike("gamertag",gamertag).single();
-  console.log("Profile result:",profile,"Error:",pe);
-  if(!profile||pe){showNotFound("Profile error: "+(pe?.message||"not found"));return;}
-
-  // Get progress
-  const {data:progress,error:pge}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",profile.id);
-  console.log("Progress result:",progress,"Error:",pge);
+async function getPlayerData(gamertag){
+  const {data:profile}=await sb.from("profiles").select("id,gamertag").ilike("gamertag",gamertag).single();
+  if(!profile)return null;
+  const {data:progress}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",profile.id);
   const pmap={};
   if(progress)progress.forEach(r=>{pmap[r.sprite_key]={unlocked:r.unlocked,level:r.level};});
+  return{gamertag:profile.gamertag,pmap};
+}
 
-  // Count stats
-  let total=0;
-  const vcounts={b:0,go:0,gu:0,ga:0,h:0,ge:0};
-  let mastered=0;
+async function compare(){
+  const tag1=document.getElementById("tag1").value.trim();
+  const tag2=document.getElementById("tag2").value.trim();
+  const err=document.getElementById("searchErr");
+  err.textContent="";
+  if(!tag1||!tag2){err.textContent="Please enter both gamertags.";return;}
+  if(tag1.toLowerCase()===tag2.toLowerCase()){err.textContent="Enter two different gamertags.";return;}
+
+  document.getElementById("results").innerHTML=`<div class="loading">Comparing...</div>`;
+
+  const [p1,p2]=await Promise.all([getPlayerData(tag1),getPlayerData(tag2)]);
+  if(!p1){err.textContent=`"${tag1}" not found.`;document.getElementById("results").innerHTML="";return;}
+  if(!p2){err.textContent=`"${tag2}" not found.`;document.getElementById("results").innerHTML="";return;}
+
+  // Build collected sets
+  const set1=new Set(),set2=new Set();
   SPRITES.forEach((sp,si)=>{
     VV.forEach(v=>{
       if(sp.noV&&v!=="b")return;
       const key=`${si}-${v}`;
-      if(pmap[key]?.unlocked){total++;vcounts[v]++;}
-      if(pmap[key]?.level===5)mastered++;
+      if(p1.pmap[key]?.unlocked)set1.add(key);
+      if(p2.pmap[key]?.unlocked)set2.add(key);
     });
   });
-  const pct=Math.round(total/TOTAL*100);
 
-  // Render
-  const joined=new Date(profile.created_at).toLocaleDateString("en-US",{month:"long",year:"numeric"});
-  document.getElementById("content").innerHTML=`
-    <div class="profile-card" style="max-width:700px;margin:0 auto;">
-      <div class="profile-top">
-        <div class="profile-avatar">${gamertag[0].toUpperCase()}</div>
-        <div class="profile-info">
-          <div class="profile-name">${profile.gamertag}</div>
-          <div class="profile-tag">fnspots.com/u/${profile.gamertag} · Joined ${joined}</div>
-          <div class="profile-stats">
-            <div class="stat"><span class="stat-val">${total}</span><span class="stat-label">COLLECTED</span></div>
-            <div class="stat"><span class="stat-val">${pct}%</span><span class="stat-label">COMPLETE</span></div>
-            <div class="stat"><span class="stat-val">${mastered}</span><span class="stat-label">MASTERED</span></div>
-            <div class="stat"><span class="stat-val">${TOTAL-total}</span><span class="stat-label">MISSING</span></div>
-          </div>
-        </div>
+  const both=[...set1].filter(k=>set2.has(k));
+  const onlyP1=[...set1].filter(k=>!set2.has(k));
+  const onlyP2=[...set2].filter(k=>!set1.has(k));
+  const pct1=Math.round(set1.size/TOTAL*100);
+  const pct2=Math.round(set2.size/TOTAL*100);
+  const winner=set1.size>set2.size?p1.gamertag:set2.size>set1.size?p2.gamertag:"Tie";
+
+  // Update URL
+  window.history.replaceState({},"",`/compare?u1=${tag1}&u2=${tag2}`);
+
+  function keyToChip(key,cls){
+    const parts=key.split("-");
+    const si=parseInt(parts[0]);
+    const sp=SPRITES[si];
+    if(!sp)return"";
+    return`<div class="chip ${cls}"><img src="/${sp.imgs.b}" alt="${sp.name}"/>${sp.name}</div>`;
+  }
+
+  document.getElementById("results").innerHTML=`
+    <div class="winner-banner">
+      <div class="winner-trophy">${winner==="Tie"?"🤝":"🏆"}</div>
+      <div class="winner-text">
+        <div class="winner-name">${winner==="Tie"?"It's a Tie!":winner+" Wins!"}</div>
+        <div class="winner-sub">${set1.size} vs ${set2.size} sprites · ${both.length} in common</div>
       </div>
+      <button class="share-btn" onclick="shareCompare()">Share 🔗</button>
+    </div>
 
-      <div class="progress-section">
-        <div class="progress-bar-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
-        <div class="progress-label">${total} / ${TOTAL} sprites collected</div>
+    <div class="vs-header">
+      <div class="player-col">
+        <div class="player-avatar">${p1.gamertag[0].toUpperCase()}</div>
+        <div class="player-name">${p1.gamertag}</div>
+        <div class="player-count">${set1.size}</div>
+        <div class="player-pct">${pct1}% complete</div>
       </div>
-
-      <div class="variant-pills">
-        ${VV.map(v=>`<div class="vpill ${VV_CSS[v]}"><span class="vcount">${vcounts[v]}</span>${VV_LABELS[v]}</div>`).join("")}
-      </div>
-
-      <div class="sprites-title">COLLECTION</div>
-      <div class="sprite-grid" id="spriteGrid"></div>
-
-      <div class="share-section">
-        <button class="share-btn primary" onclick="shareProfile()">🔗 Share Profile</button>
-        <button class="share-btn" onclick="copyLink()">📋 Copy Link</button>
-        <button class="share-btn" onclick="window.location.href='/compare?u1=${gamertag}'">🤝 Compare</button>
+      <div class="vs-badge">VS</div>
+      <div class="player-col">
+        <div class="player-avatar them">${p2.gamertag[0].toUpperCase()}</div>
+        <div class="player-name">${p2.gamertag}</div>
+        <div class="player-count">${set2.size}</div>
+        <div class="player-pct">${pct2}% complete</div>
       </div>
     </div>
-  `;
 
-  // Build sprite grid
-  const VV_DOT=["b","go","gu","ga","h","ge"];
-  const grid=document.getElementById("spriteGrid");
-  SPRITES.forEach((sp,si)=>{
-    const baseKey=`${si}-b`;
-    const baseCollected=pmap[baseKey]?.unlocked||false;
-    const baseLevel=pmap[baseKey]?.level||0;
-    // Check any variant collected
-    const anyCollected=VV_DOT.some(v=>!( sp.noV&&v!=="b")&&pmap[`${si}-${v}`]?.unlocked);
+    <div class="section">
+      <div class="section-title"><span class="section-badge">✅</span> Both have (${both.length})</div>
+      <div class="sprite-chips">${both.length?both.map(k=>keyToChip(k,"both")).join(""):'<div style="font-size:12px;color:var(--muted);">Nothing in common yet</div>'}</div>
+    </div>
 
-    // Build variant dots
-    const dots=VV_DOT.map(v=>{
-      if(sp.noV&&v!=="b")return`<div class="vdot vdot-${v}" title="${v}" style="opacity:.15"></div>`;
-      const have=pmap[`${si}-${v}`]?.unlocked;
-      return`<div class="vdot vdot-${v}${have?" have":""}" title="${v}"></div>`;
-    }).join("");
+    <div class="section">
+      <div class="section-title"><span class="section-badge">🔵</span> ${p1.gamertag} has · ${p2.gamertag} doesn't (${onlyP1.length})</div>
+      <div class="sprite-chips">${onlyP1.length?onlyP1.map(k=>keyToChip(k,"mine")).join(""):'<div style="font-size:12px;color:var(--muted);">None</div>'}</div>
+    </div>
 
-    const card=document.createElement("div");
-    card.className="sprite-card"+(anyCollected?" collected":"");
-    card.innerHTML=`
-      <img src="/${sp.imgs.b}" alt="${sp.name}" loading="lazy"/>
-      <div class="sprite-card-name">${sp.name}</div>
-      ${baseLevel>0?`<div class="sprite-card-lvl">${baseLevel===5?"★ MAX":"Lv "+baseLevel}</div>`:""}
-      <div class="variant-dots">${dots}</div>
-    `;
-    grid.appendChild(card);
-  });
-}
-
-function showNotFound(reason=""){
-  document.getElementById("content").innerHTML=`
-    <div class="not-found">
-      <h2>Profile not found</h2>
-      <p>No FNSpots user found for "${gamertag}"</p>
-      ${reason?`<p style="margin-top:8px;font-size:11px;color:#D4537E;">${reason}</p>`:""}
+    <div class="section">
+      <div class="section-title"><span class="section-badge">🔴</span> ${p2.gamertag} has · ${p1.gamertag} doesn't (${onlyP2.length})</div>
+      <div class="sprite-chips">${onlyP2.length?onlyP2.map(k=>keyToChip(k,"theirs")).join(""):'<div style="font-size:12px;color:var(--muted);">None</div>'}</div>
     </div>
   `;
 }
 
-function shareProfile(){
-  const url=`https://fnspots.com/u/${gamertag}`;
-  if(navigator.share){navigator.share({title:`${gamertag}'s FNSpots Collection`,url});}
-  else{copyLink();}
+function shareCompare(){
+  const tag1=document.getElementById("tag1").value.trim();
+  const tag2=document.getElementById("tag2").value.trim();
+  const url=`https://fnspots.com/compare?u1=${tag1}&u2=${tag2}`;
+  if(navigator.share){navigator.share({title:`${tag1} vs ${tag2} — FNSpots`,url});}
+  else{navigator.clipboard.writeText(url);alert("Link copied!");}
 }
-
-function copyLink(){
-  navigator.clipboard.writeText(`https://fnspots.com/u/${gamertag}`);
-  const btn=event.target;btn.textContent="✅ Copied!";setTimeout(()=>btn.textContent="📋 Copy Link",2000);
-}
-
-loadProfile();
 </script>
 </body>
 </html>
