@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FNSpots — Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="sprites.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{--fn:'Luckiest Guy',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:2rem 1rem;}
+
+    /* HEADER */
+    .site-header{display:flex;align-items:center;gap:10px;margin-bottom:2rem;}
+    .site-title{font-family:var(--fn);font-size:18px;letter-spacing:.06em;color:var(--text);text-decoration:none;}
+    .site-sub{font-family:var(--fn);font-size:9px;letter-spacing:.06em;color:var(--muted);}
+    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;}
+    .back-btn:hover{background:var(--surface);}
+
+    /* PROFILE CARD */
+    .profile-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:700px;margin:0 auto 2rem;}
+    .profile-top{display:flex;align-items:center;gap:1.5rem;margin-bottom:1.5rem;}
+    .profile-avatar{width:80px;height:80px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--fn);font-size:36px;color:#fff;flex-shrink:0;}
+    .profile-info{flex:1;}
+    .profile-name{font-family:var(--fn);font-size:32px;letter-spacing:.06em;color:var(--text);line-height:1;}
+    .profile-tag{font-size:12px;color:var(--muted);margin-top:4px;}
+    .profile-stats{display:flex;gap:1rem;margin-top:10px;flex-wrap:wrap;}
+    .stat{display:flex;flex-direction:column;gap:2px;}
+    .stat-val{font-family:var(--fn);font-size:22px;color:var(--text);line-height:1;}
+    .stat-label{font-size:10px;color:var(--muted);letter-spacing:.04em;}
+
+    /* PROGRESS */
+    .progress-section{margin-bottom:1.5rem;}
+    .progress-bar-wrap{width:100%;height:10px;background:var(--border);border-radius:99px;overflow:hidden;margin-bottom:6px;}
+    .progress-fill{height:100%;border-radius:99px;background:var(--purple);transition:width .5s ease;}
+    .progress-label{font-family:var(--fn);font-size:12px;color:var(--muted);letter-spacing:.04em;}
+
+    /* VARIANT PILLS */
+    .variant-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem;}
+    .vpill{font-family:var(--fn);font-size:10px;letter-spacing:.05em;padding:4px 12px;border-radius:99px;border:.5px solid var(--border);}
+    .vpill .vcount{font-size:13px;display:block;text-align:center;}
+    .v-base{background:linear-gradient(135deg,#c8c5be,#edeae3 40%,#b0ada6 60%,#e5e2db);color:#3a3830;border-color:#a5a29b;}
+    .v-gold{background:linear-gradient(135deg,#9a7000,#ffd700 20%,#ffe566 42%,#c8960a 58%,#9a7000);color:#3d2800;border-color:#a07800;}
+    .v-gummy{background:linear-gradient(135deg,#e06080,#fac0d0 30%,#ff8fab 52%,#d04868);color:#5c0020;border-color:#c0406a;}
+    .v-galaxy{background:linear-gradient(135deg,#0d0221,#3a1c71 22%,#7b3fb0 42%,#8040f8);color:#e0c8ff;border-color:#6b2fa0;}
+    .v-holo{background:linear-gradient(115deg,#ff6b6b,#ffa500 14%,#ffe000 26%,#00e888 40%,#00cfff 52%,#7b68ee 64%,#ff69b4 76%,#ff6b6b 90%);background-size:250% 250%;color:#1a0a2e;border-color:rgba(255,255,255,.5);animation:holo 3s linear infinite;}
+    @keyframes holo{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    .v-gem{background:linear-gradient(155deg,#b8e0f8,#fff 12%,#60c0e8 28%,#1a90c8 46%,#fff 54%,#1060a0 84%,#b0d8f5);color:#002840;border-color:#2090c0;}
+
+    /* SPRITE GRID */
+    .sprites-title{font-family:var(--fn);font-size:14px;letter-spacing:.06em;color:var(--muted);margin-bottom:12px;}
+    .sprite-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:8px;}
+    .sprite-card{border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);padding:6px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;}
+    .sprite-card.collected{border-color:var(--purple);background:#EEEDFE40;box-shadow:0 0 8px rgba(127,119,221,.2);}
+    .sprite-card img{width:52px;height:52px;object-fit:contain;opacity:.25;filter:grayscale(80%);transition:all .2s;}
+    .sprite-card.collected img{opacity:1;filter:none;}
+    .sprite-card-name{font-family:var(--fn);font-size:8px;letter-spacing:.04em;color:var(--muted);text-align:center;}
+    .sprite-card.collected .sprite-card-name{color:var(--text);}
+    .sprite-card-lvl{font-family:var(--fn);font-size:8px;color:var(--purple);letter-spacing:.04em;}
+
+    /* SHARE */
+    .share-section{margin-top:1.5rem;display:flex;gap:8px;flex-wrap:wrap;}
+    .share-btn{font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:8px 16px;border-radius:99px;border:1.5px solid var(--purple);color:var(--purple);background:transparent;cursor:pointer;transition:all .15s;}
+    .share-btn:hover{background:var(--purple);color:#fff;}
+    .share-btn.primary{background:var(--purple);color:#fff;}
+    .share-btn.primary:hover{background:#6560c5;}
+
+    /* NOT FOUND */
+    .not-found{text-align:center;padding:4rem 1rem;}
+    .not-found h2{font-family:var(--fn);font-size:28px;letter-spacing:.06em;color:var(--text);margin-bottom:8px;}
+    .not-found p{font-size:13px;color:var(--muted);}
+
+    /* LOADING */
+    .loading{text-align:center;padding:4rem;font-family:var(--fn);font-size:16px;letter-spacing:.06em;color:var(--muted);}
+  </style>
+</head>
+<body>
+
+<div class="site-header">
+  <div>
+    <a href="/" class="site-title">FNSpots ✨</a>
+    <div class="site-sub">by gamermistere</div>
+  </div>
+  <a href="/" class="back-btn">← Back to Tracker</a>
+</div>
+
+<div id="content"><div class="loading">Loading profile...</div></div>
+
+<script>
+const SURL="https://rjqxkgdnmypfuvsgfeuh.supabase.co";
+const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqcXhrZ2RubXlwZnV2c2dmZXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MzY1MTMsImV4cCI6MjA5ODExMjUxM30.Y3Z1xIZ3W5shIyHdoTz59EOoKs8q_iSN1yspFvNLsWQ";
+const sb=supabase.createClient(SURL,SKEY);
+
+const VV=["b","go","gu","ga","h","ge"];
+const VV_LABELS={b:"Base",go:"Gold",gu:"Gummy",ga:"Galaxy",h:"Holofoil",ge:"Gem"};
+const VV_CSS={b:"v-base",go:"v-gold",gu:"v-gummy",ga:"v-galaxy",h:"v-holo",ge:"v-gem"};
+const TOTAL=107;
+
+// Get gamertag from URL: /u/GamerMisterE
+const pathParts=window.location.pathname.split("/");
+const gamertag=pathParts[pathParts.indexOf("u")+1];
+
+async function loadProfile(){
+  if(!gamertag){showNotFound();return;}
+
+  // Get profile
+  const {data:profile}=await sb.from("profiles").select("id,gamertag,created_at").eq("gamertag",gamertag).single();
+  if(!profile){showNotFound();return;}
+
+  // Get progress
+  const {data:progress}=await sb.from("progress").select("sprite_key,unlocked,level").eq("user_id",profile.id);
+  const pmap={};
+  if(progress)progress.forEach(r=>{pmap[r.sprite_key]={unlocked:r.unlocked,level:r.level};});
+
+  // Count stats
+  let total=0;
+  const vcounts={b:0,go:0,gu:0,ga:0,h:0,ge:0};
+  let mastered=0;
+  SPRITES.forEach((sp,si)=>{
+    VV.forEach(v=>{
+      if(sp.noV&&v!=="b")return;
+      const key=`${si}-${v}`;
+      if(pmap[key]?.unlocked){total++;vcounts[v]++;}
+      if(pmap[key]?.level===5)mastered++;
+    });
+  });
+  const pct=Math.round(total/TOTAL*100);
+
+  // Render
+  const joined=new Date(profile.created_at).toLocaleDateString("en-US",{month:"long",year:"numeric"});
+  document.getElementById("content").innerHTML=`
+    <div class="profile-card" style="max-width:700px;margin:0 auto;">
+      <div class="profile-top">
+        <div class="profile-avatar">${gamertag[0].toUpperCase()}</div>
+        <div class="profile-info">
+          <div class="profile-name">${profile.gamertag}</div>
+          <div class="profile-tag">fnspots.com/u/${profile.gamertag} · Joined ${joined}</div>
+          <div class="profile-stats">
+            <div class="stat"><span class="stat-val">${total}</span><span class="stat-label">COLLECTED</span></div>
+            <div class="stat"><span class="stat-val">${pct}%</span><span class="stat-label">COMPLETE</span></div>
+            <div class="stat"><span class="stat-val">${mastered}</span><span class="stat-label">MASTERED</span></div>
+            <div class="stat"><span class="stat-val">${TOTAL-total}</span><span class="stat-label">MISSING</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-section">
+        <div class="progress-bar-wrap"><div class="progress-fill" style="width:${pct}%"></div></div>
+        <div class="progress-label">${total} / ${TOTAL} sprites collected</div>
+      </div>
+
+      <div class="variant-pills">
+        ${VV.map(v=>`<div class="vpill ${VV_CSS[v]}"><span class="vcount">${vcounts[v]}</span>${VV_LABELS[v]}</div>`).join("")}
+      </div>
+
+      <div class="sprites-title">COLLECTION</div>
+      <div class="sprite-grid" id="spriteGrid"></div>
+
+      <div class="share-section">
+        <button class="share-btn primary" onclick="shareProfile()">🔗 Share Profile</button>
+        <button class="share-btn" onclick="copyLink()">📋 Copy Link</button>
+      </div>
+    </div>
+  `;
+
+  // Build sprite grid
+  const grid=document.getElementById("spriteGrid");
+  SPRITES.forEach((sp,si)=>{
+    const key=`${si}-b`;
+    const collected=pmap[key]?.unlocked||false;
+    const level=pmap[key]?.level||0;
+    const card=document.createElement("div");
+    card.className="sprite-card"+(collected?" collected":"");
+    card.innerHTML=`
+      <img src="${sp.imgs.b}" alt="${sp.name}" loading="lazy"/>
+      <div class="sprite-card-name">${sp.name}</div>
+      ${level>0?`<div class="sprite-card-lvl">${level===5?"★ MAX":"Lv "+level}</div>`:""}
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function showNotFound(){
+  document.getElementById("content").innerHTML=`
+    <div class="not-found">
+      <h2>Profile not found</h2>
+      <p>No FNSpots user found for "${gamertag}"</p>
+    </div>
+  `;
+}
+
+function shareProfile(){
+  const url=`https://fnspots.com/u/${gamertag}`;
+  if(navigator.share){navigator.share({title:`${gamertag}'s FNSpots Collection`,url});}
+  else{copyLink();}
+}
+
+function copyLink(){
+  navigator.clipboard.writeText(`https://fnspots.com/u/${gamertag}`);
+  const btn=event.target;btn.textContent="✅ Copied!";setTimeout(()=>btn.textContent="📋 Copy Link",2000);
+}
+
+loadProfile();
+</script>
+</body>
+</html>
