@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FNSpots — About</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:2rem 1rem;}
+
+    /* HEADER */
+    .site-header{display:flex;align-items:center;gap:10px;margin-bottom:2.5rem;}
+    .site-brand{display:flex;flex-direction:column;gap:3px;}
+    .site-title{font-family:var(--fn);font-size:22px;letter-spacing:.06em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;}
+    .site-title img{height:24px;width:24px;object-fit:contain;}
+    .site-sub{font-family:var(--fn);font-size:10px;letter-spacing:.06em;color:var(--muted);}
+    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;white-space:nowrap;}
+    .back-btn:hover{background:var(--surface);}
+
+    .page-wrap{max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:1.5rem;}
+
+    /* SECTION CARD */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:2rem;display:flex;flex-direction:column;gap:1.25rem;}
+    .card-title{font-family:var(--fn);font-size:28px;letter-spacing:.05em;color:var(--text);display:flex;align-items:center;gap:10px;}
+    .card-title img{height:32px;width:32px;object-fit:contain;}
+    .card-subtitle{font-family:var(--fn);font-size:13px;letter-spacing:.05em;color:var(--muted);}
+
+    p{font-size:13px;color:var(--muted);line-height:1.7;}
+    p strong{color:var(--text);}
+
+    /* VARIANT GRID */
+    .variant-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+    .variant-item{border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:4px;}
+    .variant-name{font-family:var(--fn);font-size:13px;letter-spacing:.05em;}
+    .variant-desc{font-size:11px;line-height:1.4;opacity:.85;}
+
+    .v-base{background:linear-gradient(135deg,#c8c5be,#edeae3 40%,#b0ada6 60%,#e5e2db);color:#3a3830;border:1px solid #a5a29b;}
+    .v-gold{background:linear-gradient(135deg,#9a7000,#ffd700 20%,#ffe566 42%,#c8960a 58%,#9a7000);color:#3d2800;border:1px solid #a07800;}
+    .v-gummy{background:linear-gradient(135deg,#e06080,#fac0d0 30%,#ff8fab 52%,#d04868);color:#5c0020;border:1px solid #c0406a;}
+    .v-galaxy{background:linear-gradient(135deg,#0d0221,#3a1c71 22%,#7b3fb0 42%,#8040f8);color:#e0c8ff;border:1px solid #6b2fa0;}
+    .v-holo{background:linear-gradient(115deg,#ff6b6b,#ffa500 14%,#ffe000 26%,#00e888 40%,#00cfff 52%,#7b68ee 64%,#ff69b4 76%,#ff6b6b 90%);background-size:250% 250%;color:#1a0a2e;border:1px solid rgba(255,255,255,.5);animation:holo 3s linear infinite;position:relative;overflow:hidden;}
+    @keyframes holo{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+    .v-gem{background:linear-gradient(155deg,#b8e0f8,#fff 12%,#60c0e8 28%,#1a90c8 46%,#fff 54%,#1060a0 84%,#b0d8f5);color:#002840;border:1px solid #2090c0;}
+
+    /* XP TABLE */
+    .xp-table{width:100%;border-collapse:collapse;font-size:12px;}
+    .xp-table th{font-family:var(--fn);font-size:11px;letter-spacing:.05em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);}
+    .xp-table td{padding:8px;border-bottom:1px solid var(--border);color:var(--text);}
+    .xp-table tr:last-child td{border-bottom:none;}
+    .xp-val{font-family:var(--fn);font-size:13px;color:var(--purple);}
+
+    /* LEVEL PILLS */
+    .level-row{display:flex;gap:8px;flex-wrap:wrap;}
+    .level-pill{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;display:flex;flex-direction:column;gap:2px;flex:1;min-width:80px;}
+    .level-pill.mastered{border-color:#EF9F27;background:#FFF8E6;}
+    .level-num{font-family:var(--fn);font-size:20px;color:var(--text);}
+    .level-pill.mastered .level-num{color:#EF9F27;}
+    .level-desc{font-size:10px;color:var(--muted);}
+
+    /* DIVIDER */
+    .divider{height:.5px;background:var(--border);}
+
+    /* ABOUT ME */
+    .creator-top{display:flex;align-items:center;gap:1rem;}
+    .creator-avatar{width:64px;height:64px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-family:var(--fn);font-size:28px;color:#fff;flex-shrink:0;animation:iconGlow 3s linear infinite;}
+    @keyframes iconGlow{
+      0%{box-shadow:0 0 10px rgba(255,100,100,.9);}14%{box-shadow:0 0 10px rgba(255,165,0,.9);}28%{box-shadow:0 0 10px rgba(255,220,0,.9);}
+      42%{box-shadow:0 0 10px rgba(0,220,130,.9);}57%{box-shadow:0 0 10px rgba(0,200,255,.9);}71%{box-shadow:0 0 10px rgba(130,100,240,.9);}
+      85%{box-shadow:0 0 10px rgba(255,100,180,.9);}100%{box-shadow:0 0 10px rgba(255,100,100,.9);}
+    }
+    .creator-info{flex:1;}
+    .creator-name{font-family:var(--fn);font-size:24px;letter-spacing:.05em;color:var(--text);}
+    .creator-handle{font-size:12px;color:var(--muted);margin-top:2px;}
+
+    .social-links{display:flex;gap:10px;flex-wrap:wrap;}
+    .social-link{display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:12px;text-decoration:none;font-family:var(--fn);font-size:13px;letter-spacing:.04em;transition:opacity .15s;border:1px solid transparent;}
+    .social-link:hover{opacity:.8;}
+    .social-link.threads{background:#2A2520;color:#fff;}
+    .social-link.instagram{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);color:#fff;}
+    .social-link.youtube{background:#FF0000;color:#fff;}
+    .social-link svg{flex-shrink:0;}
+
+    .creator-code{background:linear-gradient(135deg,#0d0221,#3a1c71 40%,#7b3fb0);border-radius:14px;padding:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .code-label{font-size:11px;color:rgba(255,255,255,.6);font-family:var(--fn);letter-spacing:.06em;}
+    .code-value{font-family:var(--fn);font-size:28px;letter-spacing:.08em;color:#fff;}
+    .code-desc{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;}
+    .code-copy{font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:8px 16px;border-radius:99px;border:1.5px solid rgba(255,255,255,.4);color:#fff;background:transparent;cursor:pointer;margin-left:auto;white-space:nowrap;transition:all .15s;}
+    .code-copy:hover{background:rgba(255,255,255,.15);}
+  </style>
+</head>
+<body>
+
+<div class="site-header">
+  <div class="site-brand">
+    <a href="/" class="site-title">
+      <img src="/Sprites_Icon_Fortnite_FNSpots.webp" alt="FNSpots"/>FNSpots <span style="font-size:13px;color:var(--purple);">BETA</span>
+    </a>
+    <span class="site-sub">by GamerMisterE</span>
+  </div>
+  <a href="/" class="back-btn">← Back to Tracker</a>
+</div>
+
+<div class="page-wrap">
+
+  <!-- ABOUT SPRITES -->
+  <div class="card">
+    <div class="card-title">
+      <img src="/Sprites_Icon_Fortnite_FNSpots.webp" alt="Sprites"/>
+      Fortnite Sprites Explained
+    </div>
+    <p>Sprites are basically <strong>collectible companions that give you passive perks in matches</strong>. You equip one before the game, level it up while playing, and if you successfully extract it, you keep all its progress forever.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">HOW DO YOU GET SPRITES?</div>
+    <p>When you first play Chapter 7 Season 3, you pick one starter Sprite:</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;">🔥 Fire</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;">💧 Water</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;">🌍 Earth</div>
+    </div>
+    <p>After that, you unlock more by <strong>finding them during matches and extracting them</strong>.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">HOW DO SPRITES LEVEL UP?</div>
+    <p>Your equipped Sprite earns Sprite XP from normal gameplay. Things that give Sprite XP:</p>
+    <table class="xp-table" style="margin-top:6px;">
+      <tr><th>Action</th><th>XP</th></tr>
+      <tr><td>📦 Opening chests and ammo boxes</td><td><span class="xp-val">75</span></td></tr>
+      <tr><td>🤝 Assists</td><td><span class="xp-val">75</span></td></tr>
+      <tr><td>💀 Knock an opponent</td><td><span class="xp-val">100</span></td></tr>
+      <tr><td>🏆 Extracting Sprites</td><td><span class="xp-val">100+</span></td></tr>
+      <tr><td>💀 Eliminations</td><td><span class="xp-val">200</span></td></tr>
+      <tr><td>👑 Victory Royale</td><td><span class="xp-val">Bonus</span></td></tr>
+    </table>
+    <p>Every Sprite can reach <strong>Level 5</strong>. Once you extract a Level 5 Sprite, it's considered <strong>Mastered forever</strong>.</p>
+    <div class="level-row">
+      <div class="level-pill"><div class="level-num">1</div><div class="level-desc">Starting level</div></div>
+      <div class="level-pill"><div class="level-num">2</div><div class="level-desc">Getting stronger</div></div>
+      <div class="level-pill"><div class="level-num">3</div><div class="level-desc">Mid tier</div></div>
+      <div class="level-pill"><div class="level-num">4</div><div class="level-desc">Almost there</div></div>
+      <div class="level-pill mastered"><div class="level-num">5</div><div class="level-desc">★ Mastered!</div></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">⚠️ HERE'S THE CATCH</div>
+    <p>If you <strong>die or leave the match before extracting</strong>, you lose the Sprite you were carrying. Its levels aren't gone forever — you just didn't permanently save that progress. That's why extraction is one of the biggest parts of the mode.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">HOW DO YOU KEEP A SPRITE?</div>
+    <p>There are three ways to permanently keep a Sprite:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);">📦 Use an <strong>Extraction Site</strong></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);">📱 Use a <strong>Portable Extractor</strong></div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--text);">👑 <strong>Win the match</strong> (Victory Royale)</div>
+    </div>
+    <p>Successfully extracting a Sprite: permanently unlocks it, saves all the levels it earned, and gives you <strong>Sprite Dust</strong>.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">WHAT IS SPRITE DUST?</div>
+    <p>Sprite Dust is the <strong>currency for the whole Sprite system</strong>. You use it to:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">✨ Summon unlocked Sprites</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">⬆️ Upgrade Sprite rarity</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">📱 Buy Portable Extractors</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">📦 Buy daily XP boosts</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--text);">🔍 Scan for nearby Sprites</div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">SPRITE ABILITIES</div>
+    <p>Every Sprite has its own passive ability. Some are simple, while others completely change how you play:</p>
+    <table class="xp-table" style="margin-top:6px;">
+      <tr><th>Sprite</th><th>Ability</th></tr>
+      <tr><td>💧 Water</td><td>Heals shields while in water</td></tr>
+      <tr><td>🔥 Fire</td><td>Fire burst after dealing enough damage</td></tr>
+      <tr><td>🌍 Earth</td><td>Better chest loot</td></tr>
+      <tr><td>🌬️ Air</td><td>Faster sprinting and higher jumps</td></tr>
+      <tr><td>👑 Boss</td><td>Increases max Health and Shield</td></tr>
+      <tr><td>🥜 Burnt Peanut</td><td>Small chance for extra loot including Mythics</td></tr>
+    </table>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">VARIANTS</div>
+    <p>Almost every Sprite can come in <strong>special variants</strong>. These aren't different Sprites — they're different versions of the same Sprite, each with an extra bonus.</p>
+    <div class="variant-grid">
+      <div class="variant-item v-gold"><div class="variant-name">🟨 Gold</div><div class="variant-desc">More Sprite XP from eliminations</div></div>
+      <div class="variant-item v-gummy"><div class="variant-name">🍬 Gummy</div><div class="variant-desc">More Sprite Dust when extracted</div></div>
+      <div class="variant-item v-galaxy"><div class="variant-name">🌌 Galaxy</div><div class="variant-desc">More ammo pickups</div></div>
+      <div class="variant-item v-gem"><div class="variant-name">💎 Gem</div><div class="variant-desc">Less fall damage</div></div>
+      <div class="variant-item v-holo"><div class="variant-name">✨ Holofoil</div><div class="variant-desc">Better chance to find rare Sprites</div></div>
+    </div>
+    <p>Some variants are much rarer than others. <strong>Burnt Peanut is the only Sprite that doesn't have special variants.</strong></p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">CAN YOU TRADE SPRITES?</div>
+    <p><strong>No.</strong> You can't trade, gift, or sell Sprites. Every Sprite and every variant has to be <strong>found and extracted by you</strong>.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">WHY PEOPLE ARE GRINDING THEM</div>
+    <p>The goal isn't just getting every Sprite. Players are trying to:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">✅ Unlock every base Sprite</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">🎨 Find every special variant</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">⭐ Master every Sprite to Level 5</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">🏆 Complete the full collection</div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 14px;font-size:13px;color:var(--text);">🎁 Unlock milestone rewards</div>
+    </div>
+    <p style="margin-top:8px;">That's why <strong>FNSpots</strong> is actually useful — it lets you instantly see what you've collected, what's still missing, and how close you are to 100%.</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">SPECIAL VARIANTS</div>
+    <div class="variant-grid">
+      <div class="variant-item v-base"><div class="variant-name">Base</div><div class="variant-desc">Standard Sprite — the foundation of your collection</div></div>
+      <div class="variant-item v-gold"><div class="variant-name">Gold</div><div class="variant-desc">3x bonus Sprite XP from eliminations</div></div>
+      <div class="variant-item v-gummy"><div class="variant-name">Gummy</div><div class="variant-desc">20% more Sprite Dust on extraction</div></div>
+      <div class="variant-item v-galaxy"><div class="variant-name">Galaxy</div><div class="variant-desc">30% more ammo whenever picked up</div></div>
+      <div class="variant-item v-holo"><div class="variant-name">Holofoil</div><div class="variant-desc">30% chance squad finds rare Sprites from containers</div></div>
+      <div class="variant-item v-gem"><div class="variant-name">Gem</div><div class="variant-desc">30% damage reduction to Fall Damage</div></div>
+    </div>
+  </div>
+
+  <!-- ABOUT GAMERMISTERE -->
+  <div class="card">
+    <div class="creator-top">
+      <div class="creator-avatar">G</div>
+      <div class="creator-info">
+        <div class="creator-name">GamerMisterE</div>
+        <div class="creator-handle">Fortnite Content Creator · Sprite Hunter</div>
+      </div>
+    </div>
+
+    <p>Hi! I'm <strong>GamerMisterE</strong>.</p>
+    <p>I built this tracker because I wanted a better way to keep track of my Sprite collection. I couldn't find a simple tool that showed what I had, what I was missing, and how close I was to 100% — so I decided to make one.</p>
+    <p>This project is <strong>built by a Fortnite player, for Fortnite players</strong>. My goal is to keep it free, easy to use, and updated whenever Epic adds new Sprites, variants, or mechanics.</p>
+    <p>If this tracker helps you on your collection journey, consider supporting future updates by using creator code <strong style="color:var(--purple);">GAMERMISTERE</strong> in the Fortnite Item Shop. Every bit of support helps me continue building free tools for the community.</p>
+    <p>Follow me for Fortnite news, guides, updates, and future projects across all my socials below.</p>
+    <p>Have a suggestion, feature request, or found a bug? <strong>Shoot me a DM on any of my socials</strong> — I read every message and your feedback helps improve the tracker for everyone.</p>
+    <p>Thanks for stopping by, and good luck completing your collection! 💙</p>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">FOLLOW ME</div>
+    <div class="social-links">
+      <a href="https://www.threads.com/@gamermistere" target="_blank" class="social-link threads">
+        <svg width="16" height="16" viewBox="0 0 192 192" fill="white"><path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.503 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.372-39.134 15.265-38.105 34.569.522 9.792 5.4 18.216 13.735 23.719 7.047 4.652 16.124 6.927 25.557 6.412 12.458-.683 22.231-5.436 29.049-14.127 5.178-6.6 8.453-15.153 9.899-25.93 5.937 3.583 10.337 8.298 12.767 13.966 4.132 9.635 4.373 25.468-8.546 38.376-11.319 11.308-24.925 16.2-45.488 16.351-22.809-.169-40.06-7.484-51.275-21.742C35.236 139.966 29.808 120.682 29.605 96c.203-24.682 5.63-43.966 16.133-57.317C56.954 24.425 74.204 17.11 97.013 16.94c22.975.17 40.526 7.52 52.171 21.847 5.71 7.026 10.015 15.86 12.853 26.162l16.147-4.308c-3.44-12.68-8.853-23.606-16.219-32.668C147.036 9.607 125.202.195 97.07 0h-.113C68.882.195 47.292 9.642 32.788 28.08 19.882 44.485 13.224 67.315 13.001 96v.027c.224 28.684 6.882 51.514 19.788 67.918 14.504 18.438 36.094 27.884 64.269 28.08h.114c25.16-.171 42.874-6.768 57.496-21.376 19.006-18.991 18.415-42.532 12.152-57.083-4.368-10.176-12.741-18.414-25.283-24.578Z"/></svg>
+        Threads
+      </a>
+      <a href="https://www.instagram.com/gamermistere" target="_blank" class="social-link instagram">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+        Instagram
+      </a>
+      <a href="https://www.youtube.com/@gamermistere" target="_blank" class="social-link youtube">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        YouTube
+      </a>
+    </div>
+
+    <div class="divider"></div>
+    <div class="card-subtitle">SUPPORT IN FORTNITE</div>
+    <div class="creator-code">
+      <div>
+        <div class="code-label">EPIC CREATOR CODE</div>
+        <div class="code-value">GAMERMISTERE</div>
+        <div class="code-desc">Use in the Fortnite Item Shop to support the channel</div>
+      </div>
+      <button class="code-copy" onclick="copyCode(this)">Copy Code</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function copyCode(btn){
+  navigator.clipboard.writeText("GAMERMISTERE");
+  btn.textContent="✅ Copied!";
+  setTimeout(()=>btn.textContent="Copy Code",2000);
+}
+</script>
+</body>
+</html>
