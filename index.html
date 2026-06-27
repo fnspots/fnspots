@@ -132,6 +132,7 @@
         <span class="progress-pct" id="ppct">0%</span>
       </div>
     </div>
+    <a href="/compare" style="font-family:'Luckiest Guy',sans-serif;font-size:11px;letter-spacing:.05em;padding:7px 16px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);text-decoration:none;white-space:nowrap;">🤝 Compare</a>
     <button class="auth-btn" id="authBtn" onclick="openModal()">🔓 Save Progress</button>
   </div>
 </div>
@@ -314,7 +315,7 @@ function updBtn(){
       logoutBtn.id="logoutBtn";
       logoutBtn.style.cssText="font-family:'Luckiest Guy',sans-serif;font-size:10px;letter-spacing:.04em;padding:4px 10px;border-radius:99px;border:.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;";
       logoutBtn.textContent="Log out";
-      logoutBtn.onclick=async()=>{if(confirm("Log out?")){await sb.auth.signOut();user=null;state={};localStorage.removeItem(KEY);document.getElementById("logoutBtn")?.remove();updBtn();upd();}};
+      logoutBtn.onclick=async()=>{if(confirm("Log out?")){await sb.auth.signOut();user=null;state={};localStorage.removeItem(KEY);document.getElementById("logoutBtn")?.remove();updBtn();resetUI();}};
       btn.parentNode.insertBefore(logoutBtn,btn.nextSibling);
     }
   } else {
@@ -365,6 +366,13 @@ function buildGrid(){
   upd();
 }
 
+function resetUI(){
+  state={};
+  document.querySelectorAll(".cell").forEach(c=>c.classList.remove("unlocked"));
+  document.querySelectorAll("input.lvl").forEach(s=>{s.value=0;s.className="lvl";});
+  document.querySelectorAll(".ll").forEach(l=>{l.textContent="";l.style.color="";});
+  upd();
+}
 function rfr(si,v,sl,lb){const c=state[`${si}-${v}-lv`]||0;sl.value=c;if(c===0){lb.textContent="";sl.className="lvl";}else if(c===5){lb.textContent="★ MASTERED";lb.style.color="#EF9F27";sl.className="lvl m";}else{lb.textContent=`Lv ${c}`;lb.style.color="var(--muted)";sl.className="lvl";}}
 function save(spriteKey){
   try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
