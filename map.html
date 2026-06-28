@@ -62,7 +62,6 @@
   <button class="layer-btn active" id="btn-fishy"    onclick="toggle('fishy')">   <img src="/Fishy_Sprite_Fortnite_FNSpots.webp"/>  Fishy Sprite <b style="margin-left:3px;">6</b></button>
   <button class="layer-btn active" id="btn-vault"    onclick="toggle('vault')">   <img src="/Vault_-_Fortnite_fnspots.webp"/>        Vaults <b style="margin-left:3px;">8</b></button>
   <button class="layer-btn active" id="btn-guardian" onclick="toggle('guardian')"><img src="/The_Guardian_Fortnite_fnspots.webp"/>   Guardian Cases <b style="margin-left:3px;">12</b></button>
-  <button class="layer-btn active" id="btn-poi"      onclick="toggle('poi')">📍 POI Labels</button>
   <div class="zoom-btns">
     <button class="zoom-btn" onclick="doZoom(0.2)">+</button>
     <button class="zoom-btn" onclick="doZoom(-0.2)">−</button>
@@ -84,7 +83,7 @@
 </div>
 <script>
 const DATA={
-  chests:{img:'/Sprite_Chest_Fortnite_fnspots.webp',size:32,glow:'rgba(127,119,221,.9)',tip:'Sprite Chest',pins:[
+  chests:{img:'/Sprite_Chest_Fortnite_fnspots.webp',size:64,glow:'rgba(127,119,221,.9)',tip:'Sprite Chest',pins:[
     {x:30.5,y:15.3},{x:29.0,y:27.4},{x:12.8,y:34.0},{x:39.0,y:29.1},{x:49.5,y:28.1},
     {x:59.8,y:28.9},{x:74.9,y:28.3},{x:63.9,y:35.5},{x:50.2,y:38.2},{x:75.2,y:42.7},
     {x:20.8,y:47.6},{x:30.7,y:48.8},{x:35.7,y:48.4},{x:44.6,y:47.4},{x:50.4,y:48.2},
@@ -93,19 +92,19 @@ const DATA={
     {x:59.2,y:64.7},{x:67.3,y:65.5},{x:69.5,y:79.2},{x:55.6,y:80.0},{x:49.9,y:76.0},
     {x:21.6,y:73.0},{x:15.6,y:79.4},{x:29.6,y:73.7}
   ]},
-  boss:{img:'/Boss_Sprite_FORTNITE_fnspots.webp',size:36,glow:'rgba(163,45,45,.9)',tip:'👑 Boss Sprite',pins:[
+  boss:{img:'/Boss_Sprite_FORTNITE_fnspots.webp',size:72,glow:'rgba(163,45,45,.9)',tip:'👑 Boss Sprite',pins:[
     {x:30.2,y:35.8},{x:36.6,y:42.3},{x:27.0,y:42.7},{x:31.6,y:46.6},
     {x:19.4,y:61.7},{x:61.6,y:54.4},{x:73.3,y:44.5},{x:55.3,y:36.1}
   ]},
-  fishy:{img:'/Fishy_Sprite_Fortnite_FNSpots.webp',size:32,glow:'rgba(29,158,117,.9)',tip:'🐟 Fishy Sprite',pins:[
+  fishy:{img:'/Fishy_Sprite_Fortnite_FNSpots.webp',size:64,glow:'rgba(29,158,117,.9)',tip:'🐟 Fishy Sprite',pins:[
     {x:18.4,y:10.6},{x:59.9,y:24.5},{x:13.1,y:52.1},
     {x:62.7,y:60.1},{x:53.1,y:77.5},{x:47.1,y:79.5}
   ]},
-  vault:{img:'/Vault_-_Fortnite_fnspots.webp',size:32,glow:'rgba(239,159,39,.9)',tip:'🔐 Vault',pins:[
+  vault:{img:'/Vault_-_Fortnite_fnspots.webp',size:64,glow:'rgba(239,159,39,.9)',tip:'🔐 Vault',pins:[
     {x:22.9,y:21.1},{x:39.0,y:37.4},{x:49.5,y:42.3},{x:58.8,y:35.6},
     {x:39.0,y:60.7},{x:22.6,y:66.6},{x:48.4,y:72.7},{x:62.8,y:70.5}
   ]},
-  guardian:{img:'/The_Guardian_Fortnite_fnspots.webp',size:32,glow:'rgba(55,138,221,.9)',tip:'🛡️ Guardian Case',pins:[
+  guardian:{img:'/The_Guardian_Fortnite_fnspots.webp',size:64,glow:'rgba(55,138,221,.9)',tip:'🛡️ Guardian Case',pins:[
     {x:18.3,y:46.8},{x:23.1,y:43.0},{x:28.5,y:44.4},{x:62.2,y:26.3},
     {x:58.4,y:31.1},{x:67.2,y:33.5},{x:71.5,y:32.9},{x:21.6,y:52.3},
     {x:61.6,y:62.8},{x:67.2,y:63.4},{x:66.8,y:67.2},{x:62.2,y:68.6}
@@ -121,7 +120,7 @@ const POIS=[
   {x:62,y:59,n:'Cluster Coast'}
 ];
 
-const visible={chests:true,boss:true,fishy:true,vault:true,guardian:true,poi:true};
+const visible={chests:true,boss:true,fishy:true,vault:true,guardian:true};
 let W=1100,scale=1,tx=0,ty=0,drag=false,sx=0,sy=0,stx=0,sty=0;
 const vp=document.getElementById('vp');
 const stage=document.getElementById('stage');
@@ -140,16 +139,7 @@ Object.entries(DATA).forEach(([key,layer])=>{
   });
 });
 
-// Build POIs
-POIS.forEach(p=>{
-  const el=document.createElement('div');
-  el.className='poi';
-  el.dataset.layer='poi';
-  el.style.left=p.x+'%';
-  el.style.top=p.y+'%';
-  el.textContent=p.n;
-  stage.appendChild(el);
-});
+
 
 function toggle(key){
   visible[key]=!visible[key];
