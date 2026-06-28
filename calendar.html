@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FNSpots — Fortnite Events Calendar C7S3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem 1rem;}
+
+    /* HEADER */
+    .site-header{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+    .site-brand{display:flex;flex-direction:column;gap:3px;}
+    .site-title{font-family:var(--fn);font-size:22px;letter-spacing:.06em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;}
+    .site-title img{height:24px;width:24px;object-fit:contain;}
+    .site-sub{font-family:var(--fn);font-size:10px;letter-spacing:.06em;color:var(--muted);}
+    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;white-space:nowrap;}
+    .back-btn:hover{background:var(--surface);}
+
+    /* PAGE TITLE */
+    .page-title{font-family:var(--fn);font-size:28px;letter-spacing:.05em;color:var(--text);margin-bottom:4px;}
+    .page-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;}
+
+    /* SEASON COUNTDOWN */
+    .countdown-card{background:linear-gradient(135deg,#0d0221,#3a1c71 40%,#7b3fb0);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+    .countdown-label{font-family:var(--fn);font-size:11px;letter-spacing:.06em;color:rgba(255,255,255,.5);}
+    .countdown-title{font-family:var(--fn);font-size:20px;color:#fff;letter-spacing:.04em;}
+    .countdown-days{font-family:var(--fn);font-size:42px;color:#fff;line-height:1;margin-left:auto;}
+    .countdown-days-label{font-family:var(--fn);font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.06em;text-align:right;}
+
+    /* FILTER TABS */
+    .filter-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .ftab{font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:5px 12px;border-radius:99px;border:1px solid var(--border);color:var(--muted);background:var(--surface);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:5px;}
+    .ftab:hover{border-color:var(--border-strong);color:var(--text);}
+    .ftab.active{color:#fff;border-color:transparent;}
+    .ftab[data-type="all"].active{background:#2A2520;}
+    .ftab[data-type="sprite"].active{background:#7f77dd;}
+    .ftab[data-type="patch"].active{background:#378ADD;}
+    .ftab[data-type="collab"].active{background:#D4537E;}
+    .ftab[data-type="competitive"].active{background:#EF9F27;}
+    .ftab[data-type="recurring"].active{background:#1D9E75;}
+    .ftab[data-type="season"].active{background:#D85A30;}
+
+    /* MONTH LABEL */
+    .month-label{font-family:var(--fn);font-size:13px;letter-spacing:.06em;color:var(--muted);margin:1.5rem 0 8px;}
+    .month-label:first-child{margin-top:0;}
+
+    /* EVENT CARDS */
+    .events{display:flex;flex-direction:column;gap:8px;}
+    .event-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:flex-start;transition:all .15s;position:relative;overflow:hidden;}
+    .event-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;}
+    .event-card[data-type="sprite"]::before{background:#7f77dd;}
+    .event-card[data-type="patch"]::before{background:#378ADD;}
+    .event-card[data-type="collab"]::before{background:#D4537E;}
+    .event-card[data-type="competitive"]::before{background:#EF9F27;}
+    .event-card[data-type="recurring"]::before{background:#1D9E75;}
+    .event-card[data-type="season"]::before{background:#D85A30;}
+    .event-card.hidden{display:none;}
+    .event-card.past{opacity:.5;}
+
+    .ev-date{flex-shrink:0;width:44px;text-align:center;}
+    .ev-day{font-family:var(--fn);font-size:15px;color:var(--text);line-height:1;}
+    .ev-dow{font-size:10px;color:var(--muted);}
+
+    .ev-body{flex:1;min-width:0;}
+    .ev-name{font-family:var(--fn);font-size:13px;color:var(--text);letter-spacing:.03em;margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+    .ev-desc{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:5px;}
+    .ev-time{font-size:10px;color:var(--purple);font-weight:500;}
+
+    .badge{font-family:var(--fn);font-size:9px;letter-spacing:.05em;padding:2px 7px;border-radius:99px;flex-shrink:0;}
+    .badge-sprite{background:#EEEDFE;color:#534AB7;}
+    .badge-patch{background:#E6F1FB;color:#185FA5;}
+    .badge-collab{background:#FBEAF0;color:#993556;}
+    .badge-competitive{background:#FFF3DC;color:#7A5200;}
+    .badge-recurring{background:#E1F5EE;color:#0F6E56;}
+    .badge-season{background:#FEF0E6;color:#8A3010;}
+
+    /* REMINDER BTN */
+    .ev-actions{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;}
+    .remind-btn{font-family:var(--fn);font-size:9px;letter-spacing:.05em;padding:3px 10px;border-radius:99px;border:1px solid var(--border);color:var(--muted);background:transparent;cursor:pointer;transition:all .15s;text-decoration:none;display:inline-flex;align-items:center;gap:4px;}
+    .remind-btn:hover{border-color:var(--purple);color:var(--purple);}
+    .remind-btn.google{border-color:#D4537E;color:#D4537E;}
+    .remind-btn.google:hover{background:#D4537E;color:#fff;}
+
+    /* TODAY BADGE */
+    .today-pill{font-family:var(--fn);font-size:9px;letter-spacing:.05em;padding:2px 8px;border-radius:99px;background:#D85A30;color:#fff;}
+
+    .page-wrap{max-width:700px;margin:0 auto;}
+
+    /* MOBILE */
+    @media(max-width:600px){
+      .countdown-days{font-size:30px;}
+      .page-title{font-size:22px;}
+    }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="site-header">
+    <div class="site-brand">
+      <a href="/" class="site-title">
+        <img src="/Sprites_Icon_Fortnite_FNSpots.webp" alt="FNSpots"/>FNSpots <span style="font-size:13px;color:var(--purple);">BETA</span>
+      </a>
+      <span class="site-sub">by GamerMisterE</span>
+    </div>
+    <a href="/" class="back-btn">← Tracker</a>
+  </div>
+
+  <div class="page-title">Events Calendar</div>
+  <div class="page-sub">Chapter 7 Season 3 — Runners · All times ET</div>
+
+  <!-- SEASON COUNTDOWN -->
+  <div class="countdown-card">
+    <div>
+      <div class="countdown-label">CURRENT SEASON</div>
+      <div class="countdown-title">Chapter 7 Season 3</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px;">Ends August 19, 2026 · 9:00 AM ET</div>
+    </div>
+    <div style="text-align:right;margin-left:auto;">
+      <div class="countdown-days" id="daysLeft">--</div>
+      <div class="countdown-days-label">DAYS LEFT</div>
+    </div>
+  </div>
+
+  <!-- FILTER TABS -->
+  <div class="filter-tabs">
+    <div class="ftab active" data-type="all" onclick="filter('all')">🗓️ All</div>
+    <div class="ftab" data-type="sprite" onclick="filter('sprite')">✨ Sprite</div>
+    <div class="ftab" data-type="recurring" onclick="filter('recurring')">🔁 Weekly</div>
+    <div class="ftab" data-type="collab" onclick="filter('collab')">🎨 Collab</div>
+    <div class="ftab" data-type="patch" onclick="filter('patch')">🔧 Patch</div>
+    <div class="ftab" data-type="competitive" onclick="filter('competitive')">🏆 Competitive</div>
+    <div class="ftab" data-type="season" onclick="filter('season')">🌟 Season</div>
+  </div>
+
+  <!-- EVENTS LIST -->
+  <div id="eventsList"></div>
+
+</div>
+
+<script>
+const TODAY = new Date();
+const SEASON_END = new Date('2026-08-19T09:00:00-04:00');
+const daysLeft = Math.ceil((SEASON_END - TODAY) / (1000 * 60 * 60 * 24));
+document.getElementById('daysLeft').textContent = daysLeft > 0 ? daysLeft : '0';
+
+const EVENTS = [
+  // JUNE 2026
+  { month: 'June 2026', date: 'Jun 25', dow: 'Thu', type: 'collab', today: false, past: true,
+    name: 'Olivia Rodrigo Icon Bundle', time: '8:00 PM ET · Available ~4 weeks',
+    desc: '9-item Icon Series bundle (3,200 V-Bucks) + free spray from in-game NPC. Available until Jul 25 @ 8 PM ET.',
+    gcal: makeGCal('Olivia Rodrigo Icon Bundle - Fortnite', '2026-06-25T20:00:00', '2026-07-25T20:00:00') },
+
+  { month: 'June 2026', date: 'Jun 26', dow: 'Fri', type: 'collab', today: false, past: true,
+    name: 'Supergirl + Lobo Bundle', time: 'Available now',
+    desc: 'Milly Alcock Supergirl, Krypto sidekick, and Jason Momoa\'s Lobo — timed with the film release.',
+    gcal: makeGCal('Supergirl + Lobo Bundle - Fortnite', '2026-06-26T00:00:00', '2026-06-27T00:00:00') },
+
+  { month: 'June 2026', date: 'Jun 27', dow: 'Sat', type: 'sprite', today: false, past: true,
+    name: 'Galaxy Power Hour — Sprite Surge', time: 'Session 1: 2:00–4:00 PM ET  |  Session 2: 9:00–11:00 PM ET',
+    desc: 'Galaxy variant drop rates way up. Everyone spawns with Firework Flare Gun + Self-Revive. 2 hrs per session.',
+    gcal: makeGCal('Galaxy Power Hour - Fortnite', '2026-06-27T14:00:00', '2026-06-27T16:00:00') },
+
+  { month: 'June 2026', date: 'Jun 25 – Jul 9', dow: 'ongoing', type: 'sprite', today: false, past: false,
+    name: 'Gone Wild Summer Event', time: 'Ends Jul 9',
+    desc: 'Unvaulted weapons, Quack Snacks, Shock Rocks, campfire Sprite leveling, fishing Sprite drops. Gold fishing variants active thru Jul 1.',
+    gcal: makeGCal('Gone Wild Event ends - Fortnite', '2026-07-09T00:00:00', '2026-07-09T23:59:00') },
+
+  // JULY 2026 - RECURRING
+  { month: 'July 2026', date: 'Every Mon', dow: 'weekly', type: 'recurring', today: false, past: false,
+    name: 'Mastery Monday', time: '9:00 AM ET → 9:00 AM ET next day · Jul 6, 13, 20, 27',
+    desc: 'Legendary + Mythic Sprite spawns boosted. 2× Sprite leveling speed. 2× Sprite Dust on extraction. Runs 24 hours.',
+    gcal: makeGCal('Mastery Monday - Fortnite', '2026-07-06T09:00:00', '2026-07-07T09:00:00') },
+
+  { month: 'July 2026', date: 'Every Thu', dow: 'weekly', type: 'recurring', today: false, past: false,
+    name: 'New Sprite / Variant Drop', time: '~7:00 AM ET patch window · Jul 2, 9, 16, 23, 30',
+    desc: 'Epic drops a new Sprite or special variant into the loot pool each Thursday. Check socials for which Sprite is featured.',
+    gcal: makeGCal('New Sprite Drop Thursday - Fortnite', '2026-07-02T07:00:00', '2026-07-02T09:00:00') },
+
+  { month: 'July 2026', date: 'Every Sat', dow: 'weekly', type: 'recurring', today: false, past: false,
+    name: 'Power Hour — Weekly Sprite Surge', time: 'Session 1: 3:30–5:30 PM ET  |  Session 2: 9:30–11:30 PM ET · Jul 5, 12, 19, 26',
+    desc: 'Gold variant spawn rates up. Dark Voyager\'s Chaos Exploder Rifle for everyone. Stacking XP buff per extraction. Modifiers rotate weekly.',
+    gcal: makeGCal('Power Hour Sprite Surge - Fortnite', '2026-07-05T15:30:00', '2026-07-05T17:30:00') },
+
+  { month: 'July 2026', date: 'Jul 9', dow: 'Thu', type: 'season', today: false, past: false,
+    name: 'Gone Wild Event Ends', time: 'Jul 9',
+    desc: 'Summer event items leave the loot pool. Stock up on Quack Snacks and Shock Rocks before this date.',
+    gcal: makeGCal('Gone Wild Event Ends - Fortnite', '2026-07-09T00:00:00', '2026-07-09T23:59:00') },
+
+  { month: 'July 2026', date: 'Jul 16', dow: 'Thu', type: 'patch', today: false, past: false,
+    name: 'Patch v41.20', time: '~7:00 AM ET downtime begins (estimate)',
+    desc: 'Second major update of C7S3. New Sprites + the v41.10 Sprite styles added as Sprite Pod cosmetics. New storyline content expected.',
+    gcal: makeGCal('Fortnite Patch v41.20', '2026-07-16T07:00:00', '2026-07-16T10:00:00') },
+
+  { month: 'July 2026', date: 'Jul 18', dow: 'Sat', type: 'competitive', today: false, past: false,
+    name: 'FNCS Major 2 — Play-Ins Begin', time: 'Runs Jul 18 → Aug 2',
+    desc: 'Duos Divisional Cup Play-Ins kick off. Two 3-hour sessions Sat + Sun. Top 25 Duos per region earn spots at Globals in Antwerp.',
+    gcal: makeGCal('FNCS Major 2 Play-Ins - Fortnite', '2026-07-18T00:00:00', '2026-08-02T23:59:00') },
+
+  { month: 'July 2026', date: 'Jul 31', dow: 'Fri', type: 'competitive', today: false, past: false,
+    name: 'FNCS Community Cup', time: 'Jul 31',
+    desc: 'Open community tournament celebrating FNCS Major 2. Anyone can enter — great for content.',
+    gcal: makeGCal('FNCS Community Cup - Fortnite', '2026-07-31T00:00:00', '2026-07-31T23:59:00') },
+
+  // AUGUST 2026
+  { month: 'August 2026', date: 'Aug 1–2', dow: 'Sat–Sun', type: 'competitive', today: false, past: false,
+    name: 'FNCS Major 2 Finals', time: 'Aug 1–2',
+    desc: 'Top Duos compete in 12 matches. 25 spots to the Global Championship on the line. Big viewership weekend.',
+    gcal: makeGCal('FNCS Major 2 Finals - Fortnite', '2026-08-01T00:00:00', '2026-08-02T23:59:00') },
+
+  { month: 'August 2026', date: 'Aug 3', dow: 'Mon', type: 'competitive', today: false, past: false,
+    name: 'FNCS Last Chance Qualifier Begins', time: 'Runs Aug 3–14',
+    desc: 'Replaces Major 3. Online tournament to determine the final 10 Duos heading to Antwerp.',
+    gcal: makeGCal('FNCS Last Chance Qualifier - Fortnite', '2026-08-03T00:00:00', '2026-08-14T23:59:00') },
+
+  { month: 'August 2026', date: '~Mid Aug', dow: 'TBD', type: 'patch', today: false, past: false,
+    name: 'Patch v41.30 — Final C7S3 Update', time: 'Exact date TBD — watch Epic socials',
+    desc: 'Last major update before season end. Expected to add final Sprites, story beats, and Battle Pass page unlocks.',
+    gcal: null },
+
+  { month: 'August 2026', date: 'Aug 17–23', dow: 'Mon–Sun', type: 'competitive', today: false, past: false,
+    name: 'Reload Elite Series Championship @ EWC Paris', time: 'Aug 17–23',
+    desc: 'Biggest Fortnite tournament by prize pool this cycle. Esports World Cup — Fortnite Reload Elite track. Largest Fortnite LAN of the summer.',
+    gcal: makeGCal('EWC Paris Fortnite Reload Elite', '2026-08-17T00:00:00', '2026-08-23T23:59:00') },
+
+  { month: 'August 2026', date: 'Aug 19', dow: 'Wed', type: 'season', today: false, past: false,
+    name: 'Chapter 7 Season 3 Ends 🏁', time: '~9:00 AM ET downtime (estimate)',
+    desc: 'Battle Pass closes. Unclaimed tiers lost. All Sprite Gizmos expire. Season 4 (v42.00) launches same day.',
+    gcal: makeGCal('Fortnite Chapter 7 Season 3 Ends', '2026-08-19T09:00:00', '2026-08-19T12:00:00') },
+
+  // SEPTEMBER 2026
+  { month: 'September 2026', date: 'Sep 26–27', dow: 'Sat–Sun', type: 'competitive', today: false, past: false,
+    name: 'Fortnite Global Championship — Antwerp', time: 'PSD Bank Dome, Antwerp, Belgium',
+    desc: 'Top 50 Duos worldwide. 12 games over 2 days. $10M prize pool season.',
+    gcal: makeGCal('Fortnite Global Championship Antwerp', '2026-09-26T00:00:00', '2026-09-27T23:59:00') },
+];
+
+function makeGCal(title, start, end) {
+  const fmt = d => d.replace(/[-:]/g,'').replace('.000','');
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(start)}/${fmt(end)}&details=${encodeURIComponent('Track your Sprite collection at fnspots.com')}&location=Fortnite`;
+}
+
+function badgeHTML(type) {
+  const map = {
+    sprite: ['badge-sprite', 'Sprite'],
+    patch: ['badge-patch', 'Patch'],
+    collab: ['badge-collab', 'Collab'],
+    competitive: ['badge-competitive', 'Competitive'],
+    recurring: ['badge-recurring', 'Weekly'],
+    season: ['badge-season', 'Season'],
+  };
+  const [cls, label] = map[type] || ['badge-sprite', type];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function renderEvents(filter = 'all') {
+  const list = document.getElementById('eventsList');
+  list.innerHTML = '';
+  let lastMonth = '';
+
+  EVENTS.forEach(ev => {
+    if (filter !== 'all' && ev.type !== filter) return;
+
+    if (ev.month !== lastMonth) {
+      const ml = document.createElement('div');
+      ml.className = 'month-label';
+      ml.textContent = ev.month;
+      list.appendChild(ml);
+      lastMonth = ev.month;
+    }
+
+    const card = document.createElement('div');
+    card.className = `event-card${ev.past ? ' past' : ''}`;
+    card.dataset.type = ev.type;
+
+    const isToday = ev.today;
+    card.innerHTML = `
+      <div class="ev-date">
+        <div class="ev-day">${ev.date}</div>
+        <div class="ev-dow">${ev.dow}</div>
+      </div>
+      <div class="ev-body">
+        <div class="ev-name">
+          ${ev.name}
+          ${badgeHTML(ev.type)}
+          ${isToday ? '<span class="today-pill">TODAY</span>' : ''}
+          ${ev.past ? '<span style="font-size:9px;color:var(--muted);">(past)</span>' : ''}
+        </div>
+        <div class="ev-desc">${ev.desc}</div>
+        ${ev.time ? `<div class="ev-time">⏰ ${ev.time}</div>` : ''}
+        <div class="ev-actions">
+          ${ev.gcal ? `<a href="${ev.gcal}" target="_blank" class="remind-btn google">📅 Add to Google Calendar</a>` : ''}
+        </div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function filter(type) {
+  document.querySelectorAll('.ftab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+  renderEvents(type);
+}
+
+renderEvents('all');
+</script>
+</body>
+</html>
