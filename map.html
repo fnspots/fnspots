@@ -6,7 +6,224 @@
   <title>FNSpots — C7S3 Interactive Map</title>
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
   <script defer src="/_vercel/insights/script.js"></script>
+  <style><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FNSpots — C7S3 Interactive Map</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
+  <script defer src="/_vercel/insights/script.js"></script>
   <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
+    html,body{height:100%;overflow:hidden;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;display:flex;flex-direction:column;}
+    .site-header{display:flex;align-items:center;gap:10px;padding:10px 16px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
+    .site-title{font-family:var(--fn);font-size:18px;letter-spacing:.06em;color:var(--text);text-decoration:none;display:flex;align-items:center;gap:8px;}
+    .site-title img{height:20px;width:20px;object-fit:contain;}
+    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;padding:5px 12px;border-radius:99px;border:1px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;}
+    .back-btn:hover{background:var(--surface2);}
+    .toolbar{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--surface2);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+    .toolbar-title{font-family:var(--fn);font-size:12px;letter-spacing:.05em;color:var(--text);}
+    .layer-btn{font-family:var(--fn);font-size:10px;letter-spacing:.04em;padding:4px 10px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:var(--surface);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px;user-select:none;}
+    .layer-btn img{width:14px;height:14px;object-fit:contain;}
+    .layer-btn:hover{border-color:var(--purple);color:var(--purple);}
+    .layer-btn.active{background:var(--purple);border-color:var(--purple);color:#fff;}
+    .zoom-btns{margin-left:auto;display:flex;gap:4px;}
+    .zoom-btn{font-family:var(--fn);font-size:14px;width:28px;height:28px;border-radius:6px;border:1px solid var(--border);color:var(--muted);background:var(--surface);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .zoom-btn:hover{background:var(--surface2);color:var(--text);}
+    .map-viewport{flex:1;overflow:hidden;position:relative;cursor:grab;background:#1a3a5c;}
+    .map-viewport:active{cursor:grabbing;}
+    .map-stage{position:absolute;top:0;left:0;transform-origin:top left;}
+    .map-stage img.basemap{display:block;pointer-events:none;user-select:none;}
+    .pin{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:10;}
+    .pin img{display:block;transition:transform .2s cubic-bezier(.34,1.56,.64,1),filter .2s;}
+    .pin:hover img{transform:scale(1.6);}
+    .pin .tip{position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--purple);border-radius:6px;padding:4px 8px;font-family:var(--fn);font-size:10px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:20;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+    .pin:hover .tip{opacity:1;}
+    .pin.off{display:none;}
+    .poi{position:absolute;transform:translate(-50%,-50%);font-family:var(--fn);font-size:10px;letter-spacing:.04em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap;z-index:5;}
+    .poi.off{display:none;}
+    .legend{position:absolute;bottom:12px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;z-index:30;box-shadow:0 2px 12px rgba(0,0,0,.1);}
+    .legend-title{font-family:var(--fn);font-size:14px;letter-spacing:.05em;color:var(--muted);margin-bottom:10px;}
+    .legend-row{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);margin-bottom:8px;}
+    .legend-row:last-child{margin-bottom:0;}
+    .legend-row img{width:32px;height:32px;object-fit:contain;}
+    .legend-count{margin-left:auto;font-family:var(--fn);font-size:14px;color:var(--muted);padding-left:12px;}
+    .reset-btn{position:absolute;bottom:12px;left:12px;font-family:var(--fn);font-size:10px;padding:5px 12px;border-radius:99px;border:1px solid var(--border-strong);color:var(--muted);background:var(--surface);cursor:pointer;z-index:30;}
+    .reset-btn:hover{background:var(--surface2);color:var(--text);}
+  @media (max-width: 768px) {
+    .legend { padding: 4px 6px; border-radius: 6px; bottom: 6px; right: 6px; }
+    .legend-title { font-size: 7px; margin-bottom: 3px; }
+    .legend-row { font-size: 7px; gap: 3px; margin-bottom: 2px; }
+    .legend-row img { width: 12px; height: 12px; }
+    .legend-count { font-size: 7px; padding-left: 3px; }
+    .legend div[style*="font-size:11px"] { font-size: 6px !important; }
+    .reset-btn { font-size: 7px; padding: 3px 7px; bottom: 6px; left: 6px; }
+  }
+  </style>
+</head>
+<body>
+<div class="site-header">
+  <div style="display:flex;flex-direction:column;gap:2px;">
+    <a href="/"><img src="/fnspots_logo.png" alt="FNSpots" style="height:40px;object-fit:contain;"/></a>
+    <span style="font-family:var(--fn);font-size:9px;letter-spacing:.06em;color:var(--muted);">by GamerMisterE</span>
+  </div>
+  <a href="/" class="back-btn">← Tracker</a>
+</div>
+<div class="toolbar">
+  <img src="/fnspots_logo.png" alt="FNSpots" style="height:28px;object-fit:contain;"/> <span class="toolbar-title" style="color:var(--muted);">C7S3 — Shattered Coast</span>
+  <button class="layer-btn active" id="btn-chests"   onclick="toggle('chests')">  <img src="/Sprite_Chest_Fortnite_fnspots.webp"/>  Sprite Chests <b style="margin-left:3px;">33</b></button>
+  <button class="layer-btn active" id="btn-boss"     onclick="toggle('boss')">    <img src="/Boss_Sprite_FORTNITE_fnspots.webp"/>   Boss Sprites <b style="margin-left:3px;">8</b></button>
+  <button class="layer-btn active" id="btn-fishy"    onclick="toggle('fishy')">   <img src="/Fishy_Sprite_Fortnite_FNSpots.webp"/>  Fishy Sprite <b style="margin-left:3px;">6</b></button>
+  <button class="layer-btn active" id="btn-vault"    onclick="toggle('vault')">   <img src="/Vault_-_Fortnite_fnspots.webp"/>        Vaults <b style="margin-left:3px;">8</b></button>
+  <button class="layer-btn active" id="btn-guardian" onclick="toggle('guardian')"><img src="/The_Guardian_Fortnite_fnspots.webp"/>   Guardian Cases <b style="margin-left:3px;">12</b></button>
+  <div class="zoom-btns">
+    <button class="zoom-btn" onclick="doZoom(0.2)">+</button>
+    <button class="zoom-btn" onclick="doZoom(-0.2)">−</button>
+  </div>
+</div>
+<div class="map-viewport" id="vp">
+  <div class="map-stage" id="stage">
+    <img id="mapImg" class="basemap" src="/Shattered_Coast_Fortnite_fnspots.webp" alt="Shattered Coast"/>
+  </div>
+  <div class="legend">
+    <div class="legend-title">LEGEND</div>
+    <div class="legend-row"><img src="/Sprite_Chest_Fortnite_fnspots.webp"/> Sprite Chest <span class="legend-count">33</span></div>
+    <div class="legend-row"><img src="/Boss_Sprite_FORTNITE_fnspots.webp"/>  Boss Sprite <span class="legend-count">8</span></div>
+    <div class="legend-row"><img src="/Fishy_Sprite_Fortnite_FNSpots.webp"/> Fishy Sprite <span class="legend-count">6</span></div>
+    <div class="legend-row"><img src="/Vault_-_Fortnite_fnspots.webp"/>      Vault <span class="legend-count">8</span></div>
+    <div class="legend-row"><img src="/The_Guardian_Fortnite_fnspots.webp"/> Guardian Case <span class="legend-count">12</span></div>
+    <div style="height:.5px;background:var(--border);margin:8px 0;"></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;max-width:200px;">
+      🗺️ Map in continuous updates.<br/>
+      Share your findings:<br/>
+      <a href="mailto:fnspots@gmail.com" style="color:var(--purple);text-decoration:none;">fnspots@gmail.com</a><br/>
+      DM <a href="https://www.instagram.com/fnspots" target="_blank" style="color:var(--purple);text-decoration:none;">@fnspots</a> on Instagram or Threads
+    </div>
+  </div>
+  <img src="/fnspots_logo.png" alt="FNSpots" style="position:absolute;top:12px;right:12px;height:36px;object-fit:contain;z-index:30;opacity:.85;pointer-events:none;"/>
+  <button class="reset-btn" onclick="resetView()">⌖ Reset View</button>
+</div>
+<script>
+const DATA={
+  chests:{img:'/Sprite_Chest_Fortnite_fnspots.webp',size:64,glow:'rgba(127,119,221,.9)',tip:'Sprite Chest',pins:[
+    {x:30.5,y:15.3},{x:29.0,y:27.4},{x:12.8,y:34.0},{x:39.0,y:29.1},{x:49.5,y:28.1},
+    {x:59.8,y:28.9},{x:74.9,y:28.3},{x:63.9,y:35.5},{x:50.2,y:38.2},{x:75.2,y:42.7},
+    {x:20.8,y:47.6},{x:30.7,y:48.8},{x:35.7,y:48.4},{x:44.6,y:47.4},{x:50.4,y:48.2},
+    {x:62.2,y:49.5},{x:70.5,y:51.0},{x:56.2,y:57.2},{x:53.3,y:63.4},{x:40.5,y:56.6},
+    {x:38.6,y:59.5},{x:41.9,y:65.8},{x:33.2,y:63.9},{x:31.1,y:58.9},{x:21.1,y:59.2},
+    {x:59.2,y:64.7},{x:67.3,y:65.5},{x:69.5,y:79.2},{x:55.6,y:80.0},{x:49.9,y:76.0},
+    {x:21.6,y:73.0},{x:15.6,y:79.4},{x:29.6,y:73.7}
+  ]},
+  boss:{img:'/Boss_Sprite_FORTNITE_fnspots.webp',size:72,glow:'rgba(163,45,45,.9)',tip:'👑 Boss Sprite',pins:[
+    {x:30.2,y:35.8},{x:36.6,y:42.3},{x:27.0,y:42.7},{x:31.6,y:46.6},
+    {x:19.4,y:61.7},{x:61.6,y:54.4},{x:73.3,y:44.5},{x:55.3,y:36.1}
+  ]},
+  fishy:{img:'/Fishy_Sprite_Fortnite_FNSpots.webp',size:64,glow:'rgba(29,158,117,.9)',tip:'🐟 Fishy Sprite',pins:[
+    {x:18.4,y:10.6},{x:59.9,y:24.5},{x:13.1,y:52.1},
+    {x:62.7,y:60.1},{x:53.1,y:77.5},{x:47.1,y:79.5}
+  ]},
+  vault:{img:'/Vault_-_Fortnite_fnspots.webp',size:64,glow:'rgba(239,159,39,.9)',tip:'🔐 Vault',pins:[
+    {x:22.9,y:21.1},{x:39.0,y:37.4},{x:49.5,y:42.3},{x:58.8,y:35.6},
+    {x:39.0,y:60.7},{x:22.6,y:66.6},{x:48.4,y:72.7},{x:62.8,y:70.5}
+  ]},
+  guardian:{img:'/The_Guardian_Fortnite_fnspots.webp',size:64,glow:'rgba(55,138,221,.9)',tip:'🛡️ Guardian Case',pins:[
+    {x:18.3,y:46.8},{x:23.1,y:43.0},{x:28.5,y:44.4},{x:62.2,y:26.3},
+    {x:58.4,y:31.1},{x:67.2,y:33.5},{x:71.5,y:32.9},{x:21.6,y:52.3},
+    {x:61.6,y:62.8},{x:67.2,y:63.4},{x:66.8,y:67.2},{x:62.2,y:68.6}
+  ]}
+};
+const POIS=[
+  {x:42,y:5,n:'Lifty Lodge'},{x:27,y:22,n:'Chopped Shop'},
+  {x:46,y:16,n:'The Battlewoods'},{x:60,y:12,n:'Latte Landing'},
+  {x:74,y:16,n:'Wonkeeland'},{x:52,y:29,n:'Frosted Flats'},
+  {x:74,y:31,n:'Golden Grove'},{x:31,y:33,n:'Calamari Canyon'},
+  {x:46,y:40,n:'Sinister Strip'},{x:58,y:41,n:'Shaken Sanctuary'},
+  {x:22,y:49,n:'Heatwave Harbor'},{x:42,y:58,n:'Sunken Shores'},
+  {x:62,y:59,n:'Cluster Coast'}
+];
+
+const visible={chests:true,boss:true,fishy:true,vault:true,guardian:true};
+let W=1100,scale=1,tx=0,ty=0,drag=false,sx=0,sy=0,stx=0,sty=0;
+const vp=document.getElementById('vp');
+const stage=document.getElementById('stage');
+const mapImg=document.getElementById('mapImg');
+
+// Build pins
+Object.entries(DATA).forEach(([key,layer])=>{
+  layer.pins.forEach(p=>{
+    const el=document.createElement('div');
+    el.className='pin';
+    el.dataset.layer=key;
+    el.style.left=p.x+'%';
+    el.style.top=p.y+'%';
+    el.innerHTML=`<img src="${layer.img}" width="${layer.size}" height="${layer.size}" style="filter:drop-shadow(0 0 6px ${layer.glow}) drop-shadow(0 2px 4px rgba(0,0,0,.7));"/><div class="tip">${layer.tip}</div>`;
+    stage.appendChild(el);
+  });
+});
+
+
+
+function toggle(key){
+  visible[key]=!visible[key];
+  document.getElementById('btn-'+key).classList.toggle('active',visible[key]);
+  document.querySelectorAll(`[data-layer="${key}"]`).forEach(el=>el.classList.toggle('off',!visible[key]));
+}
+
+function apply(){stage.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`;}
+
+function resetView(){
+  const r=vp.getBoundingClientRect();
+  scale=Math.min(r.width/W,r.height/W)*0.92;
+  tx=(r.width-W*scale)/2;
+  ty=(r.height-W*scale)/2;
+  apply();
+}
+
+function doZoom(d){
+  const r=vp.getBoundingClientRect();
+  const cx=r.width/2,cy=r.height/2;
+  const ns=Math.min(5,Math.max(0.15,scale+d));
+  const ratio=ns/scale;
+  tx=cx-ratio*(cx-tx);ty=cy-ratio*(cy-ty);scale=ns;apply();
+}
+
+// Mouse
+vp.addEventListener('mousedown',e=>{drag=true;sx=e.clientX;sy=e.clientY;stx=tx;sty=ty;});
+window.addEventListener('mousemove',e=>{if(!drag)return;tx=stx+(e.clientX-sx);ty=sty+(e.clientY-sy);apply();});
+window.addEventListener('mouseup',()=>drag=false);
+
+// Touch drag
+vp.addEventListener('touchstart',e=>{if(e.touches.length===1){drag=true;sx=e.touches[0].clientX;sy=e.touches[0].clientY;stx=tx;sty=ty;}},{passive:true});
+vp.addEventListener('touchmove',e=>{
+  if(e.touches.length===1&&drag){tx=stx+(e.touches[0].clientX-sx);ty=sty+(e.touches[0].clientY-sy);apply();}
+},{passive:true});
+vp.addEventListener('touchend',()=>drag=false);
+
+// Scroll zoom
+vp.addEventListener('wheel',e=>{
+  e.preventDefault();
+  const r=vp.getBoundingClientRect();
+  const mx=e.clientX-r.left,my=e.clientY-r.top;
+  const d=e.deltaY>0?-0.12:0.12;
+  const ns=Math.min(5,Math.max(0.15,scale+d));
+  const ratio=ns/scale;
+  tx=mx-ratio*(mx-tx);ty=my-ratio*(my-ty);scale=ns;apply();
+},{passive:false});
+
+function init(){
+  W=mapImg.naturalWidth||1100;
+  stage.style.width=W+'px';
+  stage.style.height=W+'px';
+  resetView();
+}
+mapImg.complete&&mapImg.naturalWidth>0?init():mapImg.addEventListener('load',init);
+window.addEventListener('resize',resetView);
+</script>
+</body>
+</html>
     *{box-sizing:border-box;margin:0;padding:0;}
     :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
     html,body{height:100%;overflow:hidden;}
