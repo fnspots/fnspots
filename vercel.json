@@ -3,6 +3,7 @@
     { "source": "/u/:gamertag", "destination": "/u.html" },
     { "source": "/compare", "destination": "/compare.html" },
     { "source": "/about", "destination": "/about.html" },
+    { "source": "/calendar", "destination": "/calendar.html" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" }
   ]
