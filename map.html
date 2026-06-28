@@ -80,11 +80,23 @@
   <span class="toolbar-title">C7S3 Map</span>
   <button class="layer-btn active" id="btnChests" onclick="toggleLayer('chests')">
     <img src="/Sprite_Chest_Fortnite_fnspots.webp" alt="chest"/> Sprite Chests
-    <span id="chestCount" style="background:rgba(255,255,255,.15);border-radius:99px;padding:1px 6px;">27</span>
+    <span id="chestCount" style="background:rgba(255,255,255,.15);border-radius:99px;padding:1px 6px;">33</span>
   </button>
   <button class="layer-btn active" id="btnBoss" onclick="toggleLayer('boss')">
     <img src="/Boss_Sprite_FORTNITE_fnspots.webp" alt="boss"/> Boss Sprites
     <span id="bossCount" style="background:rgba(160,45,45,.2);border-radius:99px;padding:1px 6px;color:#A32D2D;">8</span>
+  </button>
+  <button class="layer-btn active" id="btnFishy" onclick="toggleLayer('fishy')">
+    <img src="/Fishy_Sprite_Fortnite_FNSpots.webp" alt="fishy"/> Fishy Sprite
+    <span style="background:rgba(29,158,117,.2);border-radius:99px;padding:1px 6px;color:#1D9E75;">6</span>
+  </button>
+  <button class="layer-btn active" id="btnVault" onclick="toggleLayer('vault')">
+    <img src="/Vault_-_Fortnite_fnspots.webp" alt="vault"/> Vaults
+    <span style="background:rgba(239,159,39,.2);border-radius:99px;padding:1px 6px;color:#EF9F27;">8</span>
+  </button>
+  <button class="layer-btn active" id="btnGuardian" onclick="toggleLayer('guardian')">
+    <img src="/The_Guardian_Fortnite_fnspots.webp" alt="guardian"/> Guardian Cases
+    <span style="background:rgba(133,183,235,.2);border-radius:99px;padding:1px 6px;color:#378ADD;">12</span>
   </button>
   <button class="layer-btn active" id="btnPOI" onclick="toggleLayer('poi')">
     📍 POI Labels
@@ -100,6 +112,9 @@
     <img src="/Shattered_Coast_Fortnite_fnspots.webp" class="map-img" id="mapImg" draggable="false"/>
     <div id="chestLayer"></div>
     <div id="bossLayer"></div>
+    <div id="fishyLayer"></div>
+    <div id="vaultLayer"></div>
+    <div id="guardianLayer"></div>
     <div id="poiLayer"></div>
   </div>
   <div class="legend">
@@ -107,12 +122,27 @@
     <div class="legend-item">
       <img src="/Sprite_Chest_Fortnite_fnspots.webp" alt="chest"/>
       Sprite Chest
-      <span class="legend-count">27</span>
+      <span class="legend-count">33</span>
     </div>
     <div class="legend-item">
       <img src="/Boss_Sprite_FORTNITE_fnspots.webp" alt="boss"/>
       Boss Sprite
       <span class="legend-count" style="color:#A32D2D;">8</span>
+    </div>
+    <div class="legend-item">
+      <img src="/Fishy_Sprite_Fortnite_FNSpots.webp" alt="fishy"/>
+      Fishy Sprite
+      <span class="legend-count" style="color:#1D9E75;">6</span>
+    </div>
+    <div class="legend-item">
+      <img src="/Vault_-_Fortnite_fnspots.webp" alt="vault"/>
+      Vault
+      <span class="legend-count" style="color:#EF9F27;">8</span>
+    </div>
+    <div class="legend-item">
+      <img src="/The_Guardian_Fortnite_fnspots.webp" alt="guardian"/>
+      Guardian Case
+      <span class="legend-count" style="color:#378ADD;">12</span>
     </div>
   </div>
   <button class="reset-view" onclick="resetView()">⌖ Reset View</button>
@@ -133,7 +163,7 @@ const mapInner = document.getElementById('mapInner');
 const mapContainer = document.getElementById('mapContainer');
 
 // Layer visibility
-const layers = { chests: true, boss: true, poi: true };
+const layers = { chests: true, boss: true, fishy: true, vault: true, guardian: true, poi: true };
 
 // BOSS SPRITE LOCATIONS — calibrated from clean map
 const BOSSES = [
@@ -147,48 +177,41 @@ const BOSSES = [
   { x: 55.3, y: 36.1, poi: 'Boss Sprite' },
 ];
 
-// CHEST LOCATIONS — percentage based (x%, y% of map)
+// CHEST LOCATIONS — calibrated from clean map via picker
 const CHESTS = [
-  // Lifty Lodge
-  { x: 42, y: 8,  poi: 'Lifty Lodge' },
-  // The Battlewoods
-  { x: 44, y: 19, poi: 'The Battlewoods' },
-  { x: 49, y: 22, poi: 'The Battlewoods' },
-  { x: 47, y: 25, poi: 'The Battlewoods' },
-  // Latte Landing
-  { x: 58, y: 15, poi: 'Latte Landing' },
-  { x: 62, y: 19, poi: 'Latte Landing' },
-  // Wonkeeland
-  { x: 72, y: 19, poi: 'Wonkeeland' },
-  { x: 76, y: 24, poi: 'Wonkeeland' },
-  // Chopped Shop
-  { x: 27, y: 25, poi: 'Chopped Shop' },
-  // Frosted Flats
-  { x: 50, y: 32, poi: 'Frosted Flats' },
-  { x: 54, y: 35, poi: 'Frosted Flats' },
-  // Golden Grove
-  { x: 72, y: 34, poi: 'Golden Grove' },
-  { x: 76, y: 38, poi: 'Golden Grove' },
-  // Calamari Canyon
-  { x: 30, y: 36, poi: 'Calamari Canyon' },
-  { x: 34, y: 39, poi: 'Calamari Canyon' },
-  { x: 31, y: 43, poi: 'Calamari Canyon' },
-  // Sinister Strip
-  { x: 44, y: 43, poi: 'Sinister Strip' },
-  { x: 48, y: 45, poi: 'Sinister Strip' },
-  { x: 46, y: 49, poi: 'Sinister Strip' },
-  // Shaken Sanctuary
-  { x: 57, y: 44, poi: 'Shaken Sanctuary' },
-  { x: 59, y: 49, poi: 'Shaken Sanctuary' },
-  // Heatwave Harbor
-  { x: 21, y: 52, poi: 'Heatwave Harbor' },
-  { x: 25, y: 57, poi: 'Heatwave Harbor' },
-  // Sunken Shores
-  { x: 38, y: 61, poi: 'Sunken Shores' },
-  { x: 43, y: 63, poi: 'Sunken Shores' },
-  // Cluster Coast
-  { x: 60, y: 62, poi: 'Cluster Coast' },
-  { x: 64, y: 65, poi: 'Cluster Coast' },
+  { x: 30.5, y: 15.3, poi: 'Sprite Chest' },
+  { x: 29.0, y: 27.4, poi: 'Sprite Chest' },
+  { x: 12.8, y: 34.0, poi: 'Sprite Chest' },
+  { x: 39.0, y: 29.1, poi: 'Sprite Chest' },
+  { x: 49.5, y: 28.1, poi: 'Sprite Chest' },
+  { x: 59.8, y: 28.9, poi: 'Sprite Chest' },
+  { x: 74.9, y: 28.3, poi: 'Sprite Chest' },
+  { x: 63.9, y: 35.5, poi: 'Sprite Chest' },
+  { x: 50.2, y: 38.2, poi: 'Sprite Chest' },
+  { x: 75.2, y: 42.7, poi: 'Sprite Chest' },
+  { x: 20.8, y: 47.6, poi: 'Sprite Chest' },
+  { x: 30.7, y: 48.8, poi: 'Sprite Chest' },
+  { x: 35.7, y: 48.4, poi: 'Sprite Chest' },
+  { x: 44.6, y: 47.4, poi: 'Sprite Chest' },
+  { x: 50.4, y: 48.2, poi: 'Sprite Chest' },
+  { x: 62.2, y: 49.5, poi: 'Sprite Chest' },
+  { x: 70.5, y: 51.0, poi: 'Sprite Chest' },
+  { x: 56.2, y: 57.2, poi: 'Sprite Chest' },
+  { x: 53.3, y: 63.4, poi: 'Sprite Chest' },
+  { x: 40.5, y: 56.6, poi: 'Sprite Chest' },
+  { x: 38.6, y: 59.5, poi: 'Sprite Chest' },
+  { x: 41.9, y: 65.8, poi: 'Sprite Chest' },
+  { x: 33.2, y: 63.9, poi: 'Sprite Chest' },
+  { x: 31.1, y: 58.9, poi: 'Sprite Chest' },
+  { x: 21.1, y: 59.2, poi: 'Sprite Chest' },
+  { x: 59.2, y: 64.7, poi: 'Sprite Chest' },
+  { x: 67.3, y: 65.5, poi: 'Sprite Chest' },
+  { x: 69.5, y: 79.2, poi: 'Sprite Chest' },
+  { x: 55.6, y: 80.0, poi: 'Sprite Chest' },
+  { x: 49.9, y: 76.0, poi: 'Sprite Chest' },
+  { x: 21.6, y: 73.0, poi: 'Sprite Chest' },
+  { x: 15.6, y: 79.4, poi: 'Sprite Chest' },
+  { x: 29.6, y: 73.7, poi: 'Sprite Chest' },
 ];
 
 // Build boss layer
@@ -206,6 +229,51 @@ BOSSES.forEach((b) => {
   bossLayer.appendChild(pin);
 });
 
+// Build fishy layer
+const fishyLayer = document.getElementById('fishyLayer');
+FISHYS.forEach((f) => {
+  const pin = document.createElement('div');
+  pin.className = 'chest-pin';
+  pin.style.left = f.x + '%';
+  pin.style.top = f.y + '%';
+  pin.innerHTML = `
+    <img src="/Fishy_Sprite_Fortnite_FNSpots.webp" alt="Fishy Sprite" style="width:36px;height:36px;filter:drop-shadow(0 0 8px rgba(29,158,117,.9)) drop-shadow(0 2px 6px rgba(0,0,0,.8));"/>
+    <div class="tooltip" style="border-color:#1D9E75;">🐟 Fishy Sprite</div>
+  `;
+  pin.dataset.layer = 'fishy';
+  fishyLayer.appendChild(pin);
+});
+
+// Build vault layer
+const vaultLayer = document.getElementById('vaultLayer');
+VAULTS.forEach((v) => {
+  const pin = document.createElement('div');
+  pin.className = 'chest-pin';
+  pin.style.left = v.x + '%';
+  pin.style.top = v.y + '%';
+  pin.innerHTML = `
+    <img src="/Vault_-_Fortnite_fnspots.webp" alt="Vault" style="width:36px;height:36px;filter:drop-shadow(0 0 8px rgba(239,159,39,.9)) drop-shadow(0 2px 6px rgba(0,0,0,.8));"/>
+    <div class="tooltip" style="border-color:#EF9F27;">🔐 Vault</div>
+  `;
+  pin.dataset.layer = 'vault';
+  vaultLayer.appendChild(pin);
+});
+
+// Build guardian layer
+const guardianLayer = document.getElementById('guardianLayer');
+GUARDIANS.forEach((g) => {
+  const pin = document.createElement('div');
+  pin.className = 'chest-pin';
+  pin.style.left = g.x + '%';
+  pin.style.top = g.y + '%';
+  pin.innerHTML = `
+    <img src="/The_Guardian_Fortnite_fnspots.webp" alt="Guardian" style="width:36px;height:36px;filter:drop-shadow(0 0 8px rgba(55,138,221,.9)) drop-shadow(0 2px 6px rgba(0,0,0,.8));"/>
+    <div class="tooltip" style="border-color:#378ADD;">🛡️ Stealth Guardian Missing Case</div>
+  `;
+  pin.dataset.layer = 'guardian';
+  guardianLayer.appendChild(pin);
+});
+
 // POI LABELS
 const POIS = [
   { x: 42, y: 6,  name: 'Lifty Lodge' },
@@ -221,6 +289,44 @@ const POIS = [
   { x: 22, y: 50, name: 'Heatwave Harbor' },
   { x: 42, y: 59, name: 'Sunken Shores' },
   { x: 62, y: 60, name: 'Cluster Coast' },
+];
+
+// FISHY SPRITE LOCATIONS
+const FISHYS = [
+  { x: 18.4, y: 10.6, poi: 'Fishy Sprite' },
+  { x: 59.9, y: 24.5, poi: 'Fishy Sprite' },
+  { x: 13.1, y: 52.1, poi: 'Fishy Sprite' },
+  { x: 62.7, y: 60.1, poi: 'Fishy Sprite' },
+  { x: 53.1, y: 77.5, poi: 'Fishy Sprite' },
+  { x: 47.1, y: 79.5, poi: 'Fishy Sprite' },
+];
+
+// VAULT LOCATIONS
+const VAULTS = [
+  { x: 22.9, y: 21.1, poi: 'Vault' },
+  { x: 39.0, y: 37.4, poi: 'Vault' },
+  { x: 49.5, y: 42.3, poi: 'Vault' },
+  { x: 58.8, y: 35.6, poi: 'Vault' },
+  { x: 39.0, y: 60.7, poi: 'Vault' },
+  { x: 22.6, y: 66.6, poi: 'Vault' },
+  { x: 48.4, y: 72.7, poi: 'Vault' },
+  { x: 62.8, y: 70.5, poi: 'Vault' },
+];
+
+// STEALTH GUARDIAN LOCATIONS
+const GUARDIANS = [
+  { x: 18.3, y: 46.8, poi: 'Stealth Guardian' },
+  { x: 23.1, y: 43.0, poi: 'Stealth Guardian' },
+  { x: 28.5, y: 44.4, poi: 'Stealth Guardian' },
+  { x: 62.2, y: 26.3, poi: 'Stealth Guardian' },
+  { x: 58.4, y: 31.1, poi: 'Stealth Guardian' },
+  { x: 67.2, y: 33.5, poi: 'Stealth Guardian' },
+  { x: 71.5, y: 32.9, poi: 'Stealth Guardian' },
+  { x: 21.6, y: 52.3, poi: 'Stealth Guardian' },
+  { x: 61.6, y: 62.8, poi: 'Stealth Guardian' },
+  { x: 67.2, y: 63.4, poi: 'Stealth Guardian' },
+  { x: 66.8, y: 67.2, poi: 'Stealth Guardian' },
+  { x: 62.2, y: 68.6, poi: 'Stealth Guardian' },
 ];
 
 // Build chest layer
