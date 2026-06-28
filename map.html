@@ -45,6 +45,15 @@
     .legend-count{margin-left:auto;font-family:var(--fn);font-size:14px;color:var(--muted);padding-left:12px;}
     .reset-btn{position:absolute;bottom:12px;left:12px;font-family:var(--fn);font-size:10px;padding:5px 12px;border-radius:99px;border:1px solid var(--border-strong);color:var(--muted);background:var(--surface);cursor:pointer;z-index:30;}
     .reset-btn:hover{background:var(--surface2);color:var(--text);}
+  @media (max-width: 768px) {
+    .legend { padding: 7px 10px; border-radius: 8px; bottom: 8px; right: 8px; }
+    .legend-title { font-size: 10px; margin-bottom: 4px; }
+    .legend-row { font-size: 10px; gap: 5px; margin-bottom: 3px; }
+    .legend-row img { width: 20px; height: 20px; }
+    .legend-count { font-size: 10px; padding-left: 6px; }
+    .legend div[style*="font-size:11px"] { font-size: 9px !important; }
+    .reset-btn { font-size: 9px; padding: 4px 10px; bottom: 8px; left: 8px; }
+  }
   </style>
 </head>
 <body>
