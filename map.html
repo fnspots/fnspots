@@ -36,7 +36,7 @@
     .map-container{flex:1;overflow:hidden;position:relative;cursor:grab;user-select:none;}
     .map-container:active{cursor:grabbing;}
     .map-inner{position:absolute;transform-origin:0 0;transition:none;}
-    .map-img{display:block;width:800px;height:800px;object-fit:cover;}
+    .map-img{display:block;width:100%;height:auto;}
 
     /* CHEST PINS */
     .chest-pin{position:absolute;transform:translate(-50%,-50%);cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1);z-index:10;}
@@ -155,9 +155,9 @@ let posX = 0;
 let posY = 0;
 let isDragging = false;
 let startX, startY, startPosX, startPosY;
-const MAP_SIZE = 800;
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 4;
+let MAP_SIZE = 800;
+const MIN_SCALE = 0.3;
+const MAX_SCALE = 5;
 
 const mapInner = document.getElementById('mapInner');
 const mapContainer = document.getElementById('mapContainer');
@@ -380,10 +380,11 @@ function zoom(delta) {
 }
 
 function resetView() {
-  scale = 1;
   const container = mapContainer.getBoundingClientRect();
-  posX = (container.width - MAP_SIZE) / 2;
-  posY = (container.height - MAP_SIZE) / 2;
+  const fitScale = Math.min(container.width / MAP_SIZE, container.height / MAP_SIZE) * 0.95;
+  scale = fitScale;
+  posX = (container.width - MAP_SIZE * scale) / 2;
+  posY = (container.height - MAP_SIZE * scale) / 2;
   applyTransform();
 }
 
@@ -461,13 +462,25 @@ mapContainer.addEventListener('wheel', e => {
   applyTransform();
 }, { passive: false });
 
-// Init centered
-window.addEventListener('load', () => {
+// Init centered — wait for image to load to get real dimensions
+const mapImgEl = document.getElementById('mapImg');
+function initMap() {
+  MAP_SIZE = mapImgEl.naturalWidth || mapImgEl.offsetWidth || 1100;
+  mapInner.style.width = MAP_SIZE + 'px';
+  mapInner.style.height = MAP_SIZE + 'px';
   const container = mapContainer.getBoundingClientRect();
-  posX = (container.width - MAP_SIZE) / 2;
-  posY = (container.height - MAP_SIZE) / 2;
+  const fitScale = Math.min(container.width / MAP_SIZE, container.height / MAP_SIZE) * 0.95;
+  scale = fitScale;
+  posX = (container.width - MAP_SIZE * scale) / 2;
+  posY = (container.height - MAP_SIZE * scale) / 2;
   applyTransform();
-});
+}
+if (mapImgEl.complete && mapImgEl.naturalWidth > 0) {
+  initMap();
+} else {
+  mapImgEl.addEventListener('load', initMap);
+}
+window.addEventListener('resize', initMap);
 </script>
 </body>
 </html>
