@@ -84,7 +84,7 @@
   </button>
   <button class="layer-btn active" id="btnBoss" onclick="toggleLayer('boss')">
     <img src="/Boss_Sprite_FORTNITE_fnspots.webp" alt="boss"/> Boss Sprites
-    <span id="bossCount" style="background:rgba(160,45,45,.2);border-radius:99px;padding:1px 6px;color:#A32D2D;">7</span>
+    <span id="bossCount" style="background:rgba(160,45,45,.2);border-radius:99px;padding:1px 6px;color:#A32D2D;">8</span>
   </button>
   <button class="layer-btn active" id="btnPOI" onclick="toggleLayer('poi')">
     📍 POI Labels
@@ -112,7 +112,7 @@
     <div class="legend-item">
       <img src="/Boss_Sprite_FORTNITE_fnspots.webp" alt="boss"/>
       Boss Sprite
-      <span class="legend-count" style="color:#A32D2D;">7</span>
+      <span class="legend-count" style="color:#A32D2D;">8</span>
     </div>
   </div>
   <button class="reset-view" onclick="resetView()">⌖ Reset View</button>
@@ -135,15 +135,16 @@ const mapContainer = document.getElementById('mapContainer');
 // Layer visibility
 const layers = { chests: true, boss: true, poi: true };
 
-// BOSS SPRITE LOCATIONS
+// BOSS SPRITE LOCATIONS — calibrated from clean map
 const BOSSES = [
-  { x: 27, y: 28, poi: 'Chopped Shop' },
-  { x: 40, y: 27, poi: 'The Battlewoods' },
-  { x: 44, y: 31, poi: 'The Battlewoods' },
-  { x: 57, y: 18, poi: 'Latte Landing' },
-  { x: 74, y: 22, poi: 'Wonkeeland' },
-  { x: 55, y: 38, poi: 'Frosted Flats' },
-  { x: 22, y: 48, poi: 'Heatwave Harbor' },
+  { x: 30.2, y: 35.8, poi: 'Boss Sprite' },
+  { x: 36.6, y: 42.3, poi: 'Boss Sprite' },
+  { x: 27.0, y: 42.7, poi: 'Boss Sprite' },
+  { x: 31.6, y: 46.6, poi: 'Boss Sprite' },
+  { x: 19.4, y: 61.7, poi: 'Boss Sprite' },
+  { x: 61.6, y: 54.4, poi: 'Boss Sprite' },
+  { x: 73.3, y: 44.5, poi: 'Boss Sprite' },
+  { x: 55.3, y: 36.1, poi: 'Boss Sprite' },
 ];
 
 // CHEST LOCATIONS — percentage based (x%, y% of map)
