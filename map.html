@@ -37,12 +37,12 @@
     .pin.off{display:none;}
     .poi{position:absolute;transform:translate(-50%,-50%);font-family:var(--fn);font-size:10px;letter-spacing:.04em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap;z-index:5;}
     .poi.off{display:none;}
-    .legend{position:absolute;bottom:12px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;z-index:30;box-shadow:0 2px 12px rgba(0,0,0,.1);}
-    .legend-title{font-family:var(--fn);font-size:10px;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
-    .legend-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text);margin-bottom:4px;}
+    .legend{position:absolute;bottom:12px;right:12px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 20px;z-index:30;box-shadow:0 2px 12px rgba(0,0,0,.1);}
+    .legend-title{font-family:var(--fn);font-size:14px;letter-spacing:.05em;color:var(--muted);margin-bottom:10px;}
+    .legend-row{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);margin-bottom:8px;}
     .legend-row:last-child{margin-bottom:0;}
-    .legend-row img{width:18px;height:18px;object-fit:contain;}
-    .legend-count{margin-left:auto;font-family:var(--fn);font-size:11px;color:var(--muted);padding-left:8px;}
+    .legend-row img{width:32px;height:32px;object-fit:contain;}
+    .legend-count{margin-left:auto;font-family:var(--fn);font-size:14px;color:var(--muted);padding-left:12px;}
     .reset-btn{position:absolute;bottom:12px;left:12px;font-family:var(--fn);font-size:10px;padding:5px 12px;border-radius:99px;border:1px solid var(--border-strong);color:var(--muted);background:var(--surface);cursor:pointer;z-index:30;}
     .reset-btn:hover{background:var(--surface2);color:var(--text);}
   </style>
@@ -78,6 +78,13 @@
     <div class="legend-row"><img src="/Fishy_Sprite_Fortnite_FNSpots.webp"/> Fishy Sprite <span class="legend-count">6</span></div>
     <div class="legend-row"><img src="/Vault_-_Fortnite_fnspots.webp"/>      Vault <span class="legend-count">8</span></div>
     <div class="legend-row"><img src="/The_Guardian_Fortnite_fnspots.webp"/> Guardian Case <span class="legend-count">12</span></div>
+    <div style="height:.5px;background:var(--border);margin:8px 0;"></div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.5;max-width:200px;">
+      🗺️ Map in continuous updates.<br/>
+      Share your findings:<br/>
+      <a href="mailto:fnspots@gmail.com" style="color:var(--purple);text-decoration:none;">fnspots@gmail.com</a><br/>
+      DM <a href="https://www.instagram.com/fnspots" target="_blank" style="color:var(--purple);text-decoration:none;">@fnspots</a> on Instagram or Threads
+    </div>
   </div>
   <button class="reset-btn" onclick="resetView()">⌖ Reset View</button>
 </div>
