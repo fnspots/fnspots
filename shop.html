@@ -135,9 +135,16 @@ async function checkAuth(){
 
 async function loadShop(){
   try{
-    const res=await fetch("https://fortnite-api.com/v2/shop");
+    console.log("Fetching shop from fortnite-api.com...");
+    const controller=new AbortController();
+    const timeoutId=setTimeout(()=>controller.abort(),15000);
+    const res=await fetch("https://fortnite-api.com/v2/shop",{signal:controller.signal});
+    clearTimeout(timeoutId);
+    console.log("Response status:",res.status);
+    if(!res.ok)throw new Error("HTTP "+res.status);
     const json=await res.json();
-    if(!json.data||!json.data.entries){throw new Error("No shop data");}
+    console.log("Shop data received:",json);
+    if(!json.data||!json.data.entries){throw new Error("No shop data in response");}
 
     todayDateStr=json.data.date?json.data.date.split("T")[0]:new Date().toISOString().split("T")[0];
     document.getElementById("shopDate").textContent=new Date(todayDateStr).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
@@ -164,7 +171,7 @@ async function loadShop(){
     renderShop();
   }catch(err){
     console.error("Shop load error:",err);
-    document.getElementById("shopGrid").innerHTML='<div class="error-msg">Could not load today\'s shop. Please try again later.</div>';
+    document.getElementById("shopGrid").innerHTML=`<div class="error-msg">Could not load today's shop.<br/><span style="font-size:10px;opacity:.7;">${err.message||err}</span></div>`;
   }
 }
 
