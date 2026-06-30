@@ -717,10 +717,28 @@ async function downloadCard(){
 }
 
 function fallbackDownload(dataUrl){
-  const link=document.createElement("a");
-  link.download=`fnspots-${user?.tag||"collection"}.png`;
-  link.href=dataUrl;
-  link.click();
+  const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+
+  if(isIOS){
+    // iOS browsers can't write to Photos directly — show the image full-screen
+    // so the user can long-press → Save Image
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;';
+    overlay.innerHTML=`
+      <div style="font-family:'Anton',sans-serif;font-size:16px;color:#fff;text-align:center;letter-spacing:.04em;">
+        👆 Press and hold the image<br/>then tap "Save to Photos"
+      </div>
+      <img src="${dataUrl}" style="max-width:90vw;max-height:65vh;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.5);"/>
+      <button style="font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.05em;padding:10px 24px;border-radius:99px;border:none;background:#7f77dd;color:#fff;">Close</button>
+    `;
+    overlay.querySelector('button').onclick=()=>overlay.remove();
+    document.body.appendChild(overlay);
+  } else {
+    const link=document.createElement("a");
+    link.download=`fnspots-${user?.tag||"collection"}.png`;
+    link.href=dataUrl;
+    link.click();
+  }
 }
 
 function copyShareLink(){
