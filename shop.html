@@ -73,6 +73,25 @@
       .category-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
       .page-title{font-size:20px;}
     }
+
+    /* AUTH MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:18px;padding:26px;width:310px;max-width:90vw;display:flex;flex-direction:column;gap:14px;position:relative;}
+    .modal-title{font-family:var(--fn);font-size:20px;letter-spacing:.06em;color:var(--text);text-align:center;}
+    .modal-sub{font-size:11px;color:var(--muted);text-align:center;margin-top:-8px;}
+    .modal-tabs{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+    .tab{flex:1;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:7px;text-align:center;cursor:pointer;color:var(--muted);background:var(--surface2);transition:all .15s;}
+    .tab.active{background:#7f77dd;color:#fff;}
+    .modal-fields{display:flex;flex-direction:column;gap:8px;}
+    .field-label{font-family:var(--fn);font-size:10px;letter-spacing:.05em;color:var(--muted);margin-bottom:2px;}
+    .field-input{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none;transition:border .15s;}
+    .field-input:focus{border-color:#7f77dd;}
+    .modal-cta{font-family:var(--fn);font-size:13px;letter-spacing:.06em;padding:11px;border-radius:10px;border:none;background:#7f77dd;color:#fff;cursor:pointer;transition:background .15s;}
+    .modal-cta:hover{background:#6560c5;}
+    .modal-error{font-size:11px;color:#D4537E;text-align:center;min-height:14px;}
+    .modal-close{position:absolute;top:13px;right:15px;font-size:17px;cursor:pointer;color:var(--muted);background:none;border:none;}
+    .modal-footer{font-size:10px;color:var(--muted);text-align:center;}
   </style>
 </head>
 <body>
@@ -104,7 +123,23 @@
   <div id="authGate" class="auth-gate" style="display:none;">
     <div class="auth-gate-title">👀 Browsing as a guest</div>
     <div class="auth-gate-sub">Log in to FNSpots to vote Buy or Skip on items below</div>
-    <button class="auth-gate-btn" onclick="window.location.href='/?login=1'">Go to Tracker to Log In</button>
+    <button class="auth-gate-btn" onclick="openModal()">Log In / Create Account</button>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlay(event)">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-title"><img src="/fnspots_logo.png" alt="FNSpots" style="height:36px;object-fit:contain;vertical-align:middle;"/></div>
+      <div class="modal-sub" id="mSub">Save your collection across devices</div>
+      <div class="modal-tabs">
+        <div class="tab active" id="tCreate" onclick="switchTab('create')">Create Account</div>
+        <div class="tab" id="tLogin" onclick="switchTab('login')">Log In</div>
+      </div>
+      <div class="modal-fields" id="mFields"></div>
+      <div class="modal-error" id="mErr"></div>
+      <button class="modal-cta" id="mCta" onclick="handleAuth().catch(e=>console.error(e))">Create Account</button>
+      <div class="modal-footer">Your progress saves automatically ✨</div>
+    </div>
   </div>
 
   <div id="shopGrid" class="shop-grid">
@@ -118,6 +153,7 @@ const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI
 const sb=supabase.createClient(SURL,SKEY);
 
 let user=null;
+let curTab="create";
 let shopItems=[];
 let voteData={}; // offerId -> {buy, skip, myVote}
 let todayDateStr="";
@@ -324,6 +360,73 @@ async function castVote(offerId,vote,btn){
     alert("Couldn't save your vote. Please try again.");
   }
   btn.disabled=false;
+}
+
+function openModal(){
+  renderAuthFields();
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal(){document.getElementById("modalOverlay").classList.remove("open");}
+function handleOverlay(e){if(e.target===document.getElementById("modalOverlay"))closeModal();}
+function switchTab(t){
+  curTab=t;
+  document.getElementById("tCreate").classList.toggle("active",t==="create");
+  document.getElementById("tLogin").classList.toggle("active",t==="login");
+  document.getElementById("mCta").textContent=t==="create"?"Create Account":"Log In";
+  document.getElementById("mSub").textContent=t==="create"?"Save your collection across devices":"Welcome back!";
+  document.getElementById("mErr").textContent="";
+  renderAuthFields();
+}
+function renderAuthFields(){
+  document.getElementById("mFields").innerHTML=curTab==="create"
+    ?`<div><div class="field-label">Gamertag</div><input class="field-input" id="f-tag" placeholder="e.g. Mutron" maxlength="20"></div><div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Min. 6 characters"></div>`
+    :`<div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Your password"></div>`;
+}
+async function handleAuth(){
+  const err=document.getElementById("mErr");err.textContent="";
+  const email=document.getElementById("f-email")?.value.trim();
+  const pass=document.getElementById("f-pass")?.value;
+  if(!email||!pass){err.textContent="Please fill in all fields.";return;}
+  if(pass.length<6){err.textContent="Password must be at least 6 characters.";return;}
+  const cta=document.getElementById("mCta");
+  cta.textContent="...";cta.disabled=true;
+
+  if(curTab==="create"){
+    const tag=document.getElementById("f-tag")?.value.trim();
+    if(!tag){err.textContent="Gamertag is required.";cta.textContent="Create Account";cta.disabled=false;return;}
+    const {data:existing}=await sb.from("profiles").select("gamertag").eq("gamertag",tag).single();
+    if(existing){err.textContent="Gamertag already taken.";cta.textContent="Create Account";cta.disabled=false;return;}
+    const {data,error}=await sb.auth.signUp({email,password:pass});
+    if(error){err.textContent=error.message;cta.textContent="Create Account";cta.disabled=false;return;}
+    await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
+    user={tag,email,id:data.user.id};
+    closeModal();
+    await onLoginSuccess();
+  } else {
+    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
+    if(error){err.textContent=error.message||"Login failed. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
+    if(!data||!data.user){err.textContent="No user returned. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
+    let {data:profile,error:pe}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
+    if(pe||!profile){
+      const tag=prompt("Welcome! Please enter your gamertag to complete setup:");
+      if(!tag){err.textContent="Gamertag required.";cta.textContent="Log In";cta.disabled=false;await sb.auth.signOut();return;}
+      const {error:ie}=await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
+      if(ie){err.textContent="Could not create profile: "+ie.message;cta.textContent="Log In";cta.disabled=false;return;}
+      profile={gamertag:tag};
+    }
+    user={tag:profile.gamertag,email,id:data.user.id};
+    closeModal();
+    await onLoginSuccess();
+  }
+  cta.disabled=false;
+}
+
+async function onLoginSuccess(){
+  document.getElementById("authGate").style.display="none";
+  document.getElementById("greetingCard").style.display="block";
+  document.getElementById("greetingName").textContent="Hi "+user.tag+"!";
+  await loadVotes();
+  renderShop();
 }
 
 (async function init(){
