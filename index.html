@@ -27,6 +27,7 @@
   <title>FNSpots — Fortnite Sprite Tracker | Track All Sprites & Variants</title>
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="sprites.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -145,14 +146,14 @@
     .share-close{position:absolute;top:12px;right:14px;font-size:16px;cursor:pointer;color:#8A8278;background:none;border:none;}
 
     /* SHARE CARD */
-    .card-preview{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;aspect-ratio:900/500;}
-    #cardPreview{width:100%;height:100%;display:block;border-radius:12px;object-fit:contain;}
+    .card-preview{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);}
 
     @media (max-width: 768px) {
       .share-modal{padding:16px;width:94vw;max-width:94vw;}
       .share-modal-title{font-size:15px;}
+      #shareCard{width:100% !important;}
     }
-    #shareCard{width:300px;background:linear-gradient(135deg,#1a0545 0%,#3a1c71 40%,#7b3fb0 70%,#0d0221 100%);padding:24px;font-family:'Anton',sans-serif;position:relative;overflow:hidden;}
+    #shareCard{width:100%;background:linear-gradient(135deg,#1a0545 0%,#3a1c71 40%,#7b3fb0 70%,#0d0221 100%);padding:24px;font-family:'Anton',sans-serif;position:relative;overflow:hidden;}
     #shareCard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(255,255,255,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(127,119,221,.2) 0%,transparent 50%);}
     .card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;position:relative;}
     .card-logo{font-size:20px;letter-spacing:.06em;color:#fff;}
@@ -544,7 +545,20 @@ initAuth();
     <button class="share-close" onclick="closeShareCard()">✕</button>
     <div class="share-modal-title" style="display:flex;align-items:center;justify-content:center;gap:8px;"><img src="/fnspots_logo.png" alt="FNSpots" style="height:24px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 6px rgba(127,119,221,.4));"/> Share your collection</div>
     <div class="card-preview">
-      <canvas id="cardPreview"></canvas>
+      <div id="shareCard">
+        <div class="card-header">
+          <div>
+            <div class="card-logo"><img src="/fnspots_logo.png" alt="FNSpots" style="height:22px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 6px rgba(127,119,221,.4));"/></div>
+            <div class="card-sub">BY GAMERMISTERE</div>
+          </div>
+        </div>
+        <div class="card-gamertag" id="cardGamertag">Player</div>
+        <div class="card-pct" id="cardPct">0%</div>
+        <div class="card-count" id="cardCount">0 / 103 SPRITES</div>
+        <div class="card-bar-wrap"><div class="card-bar-fill" id="cardBar" style="width:0%"></div></div>
+        <div class="card-sprites" id="cardSprites"></div>
+        <div class="card-footer">fnspots.com/u/<span class="card-url" id="cardUrl">-</span></div>
+      </div>
     </div>
     <div class="share-actions">
       <button class="share-action-btn primary" onclick="downloadCard()">📤 Share Image</button>
@@ -565,14 +579,52 @@ initAuth();
 
 <script>
 function openShareCard(){
+  // Populate card data from current state
+  const total=parseInt(document.getElementById("pcount").textContent.split("/")[0].trim())||0;
+  const pct=parseInt(document.getElementById("ppct").textContent)||0;
+  const tag=user?user.tag:"Player";
+
+  document.getElementById("cardGamertag").textContent=tag;
+  document.getElementById("cardPct").textContent=pct+"%";
+  document.getElementById("cardCount").textContent=total+" / 103 SPRITES";
+  document.getElementById("cardBar").style.width=pct+"%";
+  document.getElementById("cardUrl").textContent=tag;
+
+  // Show top 6 collected sprites with variant dots
+  const cardSprites=document.getElementById("cardSprites");
+  cardSprites.innerHTML="";
+  const VV_CARD=["b","go","gu","ga","h","ge"];
+  const VV_DOT_COLORS={b:"#888780",go:"#ffd700",gu:"#ff8fab",ga:"#8040f8",h:"linear-gradient(135deg,#ff6b6b,#00cfff)",ge:"#60c0e8"};
+  let shown=0;
+  SPRITES.forEach((sp,si)=>{
+    if(shown>=6)return;
+    const anyCollected=VV_CARD.some(v=>!(sp.noV&&v!=="b")&&state[`${si}-${v}`]);
+    if(anyCollected){
+      const dots=VV_CARD.map(v=>{
+        if(sp.noV&&v!=="b")return`<div style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.1);"></div>`;
+        const have=state[`${si}-${v}`];
+        return`<div style="width:6px;height:6px;border-radius:50%;background:${have?VV_DOT_COLORS[v]:'rgba(255,255,255,.15)'};"></div>`;
+      }).join("");
+      const div=document.createElement("div");
+      div.className="card-sprite";
+      div.style.flexDirection="column";
+      div.style.gap="3px";
+      const img=document.createElement("img");
+      img.src="/"+sp.imgs.b;
+      img.alt=sp.name;
+      img.crossOrigin="anonymous";
+      img.style.width="36px";img.style.height="36px";img.style.objectFit="contain";
+      div.appendChild(img);
+      const dotsWrap=document.createElement("div");
+      dotsWrap.style.display="flex";dotsWrap.style.gap="2px";dotsWrap.style.justifyContent="center";
+      dotsWrap.innerHTML=dots;
+      div.appendChild(dotsWrap);
+      cardSprites.appendChild(div);
+      shown++;
+    }
+  });
+
   document.getElementById("shareOverlay").classList.add("open");
-  // Draw preview directly on canvas — no DOM manipulation needed
-  setTimeout(()=>{
-    const c=drawShareCard();
-    const preview=document.getElementById("cardPreview");
-    preview.width=c.width;preview.height=c.height;
-    preview.getContext("2d").drawImage(c,0,0);
-  },50);
 }
 
 function closeShareCard(){document.getElementById("shareOverlay").classList.remove("open");}
@@ -580,11 +632,20 @@ function handleShareOverlay(e){if(e.target===document.getElementById("shareOverl
 
 async function downloadCard(){
   const btn=event.target;
+  const originalText=btn.textContent;
   btn.textContent="Generating...";btn.disabled=true;
   try{
-    const canvas=drawShareCard();
+    const cardEl=document.getElementById("shareCard");
+    const canvas=await html2canvas(cardEl,{
+      scale:3,
+      backgroundColor:null,
+      useCORS:true,
+      allowTaint:false,
+      logging:false
+    });
     const dataUrl=canvas.toDataURL("image/png");
-    const countText=document.getElementById("pcount")?.textContent||"0 / 103";
+    const countText=document.getElementById("cardCount")?.textContent||"0 / 103";
+
     if(navigator.share&&navigator.canShare){
       canvas.toBlob(async(blob)=>{
         try{
@@ -601,151 +662,26 @@ async function downloadCard(){
             btn.textContent="✅ Downloaded!";
           }
         }catch(shareErr){
-          // User cancelled share or share failed — fallback to download
           if(shareErr.name!=="AbortError"){
             console.error(shareErr);
             fallbackDownload(dataUrl);
             btn.textContent="✅ Downloaded!";
           } else {
-            btn.textContent="📤 Share Image";
+            btn.textContent=originalText;
           }
         }
-        setTimeout(()=>{btn.textContent="📤 Share Image";btn.disabled=false;},2000);
+        setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
       },"image/png");
     } else {
       fallbackDownload(dataUrl);
       btn.textContent="✅ Downloaded!";
-      setTimeout(()=>{btn.textContent="📤 Share Image";btn.disabled=false;},2000);
+      setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
     }
   }catch(e){
-    console.error(e);
-    btn.textContent="📤 Share Image";btn.disabled=false;
+    console.error("Share card generation failed:",e);
+    btn.textContent=originalText;btn.disabled=false;
+    alert("Couldn't generate the image. Please try again.");
   }
-}
-
-function drawShareCard(){
-  const W=900, H=500;
-  const canvas=document.createElement("canvas");
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext("2d");
-
-  // Background gradient — deep galaxy purple
-  const bg=ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,"#0d0221");
-  bg.addColorStop(0.4,"#3a1c71");
-  bg.addColorStop(0.7,"#7b3fb0");
-  bg.addColorStop(1,"#0d0221");
-  ctx.fillStyle=bg;
-  ctx.fillRect(0,0,W,H);
-
-  // Radial glow top-left
-  const gl=ctx.createRadialGradient(W*0.2,H*0.2,0,W*0.2,H*0.2,W*0.4);
-  gl.addColorStop(0,"rgba(255,255,255,0.07)");
-  gl.addColorStop(1,"rgba(255,255,255,0)");
-  ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
-
-  // Radial glow bottom-right
-  const gl2=ctx.createRadialGradient(W*0.8,H*0.8,0,W*0.8,H*0.8,W*0.35);
-  gl2.addColorStop(0,"rgba(127,119,221,0.18)");
-  gl2.addColorStop(1,"rgba(127,119,221,0)");
-  ctx.fillStyle=gl2;ctx.fillRect(0,0,W,H);
-
-  // FNSpots label
-  ctx.font="bold 22px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.5)";
-  ctx.letterSpacing="3px";
-  ctx.fillText("FNSPOTS.COM",48,60);
-
-  // Gamertag
-  const tag=user?user.tag:"Player";
-  ctx.font="bold 64px Anton, sans-serif";
-  ctx.fillStyle="#ffffff";
-  ctx.fillText(tag,48,140);
-
-  // Big percentage
-  const pct=document.getElementById("ppct").textContent||"0%";
-  ctx.font="bold 120px Anton, sans-serif";
-  const pctGrad=ctx.createLinearGradient(48,150,48,280);
-  pctGrad.addColorStop(0,"#ffffff");
-  pctGrad.addColorStop(1,"#b0a8f0");
-  ctx.fillStyle=pctGrad;
-  ctx.fillText(pct,48,270);
-
-  // Count
-  const count=document.getElementById("pcount").textContent||"0 / 103";
-  ctx.font="bold 28px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.55)";
-  ctx.fillText(count+" SPRITES",48,310);
-
-  // Progress bar background
-  const barX=48,barY=340,barW=W-96,barH=12,barR=6;
-  ctx.fillStyle="rgba(255,255,255,0.12)";
-  roundRect(ctx,barX,barY,barW,barH,barR);
-
-  // Progress bar fill
-  const pctNum=parseInt(pct)||0;
-  const fillW=barW*(pctNum/100);
-  const barGrad=ctx.createLinearGradient(barX,0,barX+fillW,0);
-  barGrad.addColorStop(0,"#7f77dd");
-  barGrad.addColorStop(1,"#D4537E");
-  ctx.fillStyle=barGrad;
-  roundRect(ctx,barX,barY,Math.max(barR*2,fillW),barH,barR);
-
-  // Variant stats row
-  const variants=[
-    {label:"Base",  count:document.getElementById("s-b")?.textContent||"0/18",  color:"#888780"},
-    {label:"Gold",  count:document.getElementById("s-go")?.textContent||"0/17", color:"#EF9F27"},
-    {label:"Gummy", count:document.getElementById("s-gu")?.textContent||"0/17", color:"#D4537E"},
-    {label:"Galaxy",count:document.getElementById("s-ga")?.textContent||"0/17", color:"#7F77DD"},
-    {label:"Holo",  count:document.getElementById("s-h")?.textContent||"0/17",  color:"#1D9E75"},
-    {label:"Gem",   count:document.getElementById("s-ge")?.textContent||"0/17", color:"#378ADD"},
-  ];
-  const vW=Math.floor((W-96)/6);
-  variants.forEach((v,i)=>{
-    const vx=48+i*vW;
-    const vy=375;
-    // pill bg
-    ctx.fillStyle="rgba(255,255,255,0.08)";
-    roundRect(ctx,vx,vy,vW-6,52,8);
-    // color dot
-    ctx.fillStyle=v.color;
-    ctx.beginPath();ctx.arc(vx+16,vy+16,5,0,Math.PI*2);ctx.fill();
-    // label
-    ctx.font="bold 11px Anton, sans-serif";
-    ctx.fillStyle="rgba(255,255,255,0.5)";
-    ctx.fillText(v.label,vx+26,vy+20);
-    // count
-    ctx.font="bold 16px Anton, sans-serif";
-    ctx.fillStyle="#fff";
-    ctx.fillText(v.count,vx+10,vy+44);
-  });
-
-  // Footer
-  ctx.font="14px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.3)";
-  ctx.fillText("Track your Sprite collection at fnspots.com",48,H-20);
-
-  // Creator code
-  ctx.font="bold 14px Anton, sans-serif";
-  ctx.fillStyle="rgba(127,119,221,0.8)";
-  ctx.fillText("Use code GAMERMISTERE in the Item Shop",W-380,H-20);
-
-  return canvas;
-}
-
-function roundRect(ctx,x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.lineTo(x+w-r,y);
-  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r);
-  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-  ctx.lineTo(x,y+r);
-  ctx.quadraticCurveTo(x,y,x+r,y);
-  ctx.closePath();
-  ctx.fill();
 }
 
 function fallbackDownload(dataUrl){
