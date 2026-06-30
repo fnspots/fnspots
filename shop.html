@@ -478,18 +478,20 @@ async function drawShopShareCard(){
     .filter(i=>voteData[i.offerId]?.myVote)
     .slice(0,6);
 
+  const SCALE=2.5; // resolution multiplier — keeps all coordinates below in "logical" px
   const W=900;
   const cols=3;
   const rows=Math.ceil(myVotedItems.length/cols)||1;
-  const cellSize=220;
+  const cellSize=260;
   const headerH=140;
   const footerH=70;
   const padding=30;
   const H=headerH+rows*cellSize+footerH;
 
   const canvas=document.createElement("canvas");
-  canvas.width=W;canvas.height=H;
+  canvas.width=W*SCALE;canvas.height=H*SCALE;
   const ctx=canvas.getContext("2d");
+  ctx.scale(SCALE,SCALE); // all subsequent drawing uses logical W/H coordinates, rendered at higher pixel density
 
   // Background — galaxy gradient
   const bg=ctx.createLinearGradient(0,0,W,H);
@@ -544,7 +546,7 @@ async function drawShopShareCard(){
 
       // Item image
       const img=images[idx];
-      const imgSize=Math.min(cw,ch-50);
+      const imgSize=Math.min(cw,ch-70);
       const imgX=cx+(cw-imgSize)/2;
       const imgY=cy+8;
       if(img){
@@ -578,7 +580,27 @@ async function drawShopShareCard(){
       ctx.fillStyle="#fff";
       let name=item.name;
       if(name.length>22)name=name.substring(0,20)+"…";
-      ctx.fillText(name,cx+8,cy+imgSize+24);
+      ctx.fillText(name,cx+8,cy+imgSize+22);
+
+      // Community vote bar
+      const votes=voteData[item.offerId]||{buy:0,skip:0};
+      const total=votes.buy+votes.skip;
+      const buyPct=total>0?Math.round(votes.buy/total*100):50;
+      const barX=cx+8,barY=cy+imgSize+32,barW=cw-16,barH=8;
+
+      ctx.fillStyle="rgba(212,83,126,0.5)"; // skip color base
+      roundRectPath(ctx,barX,barY,barW,barH,4);
+      ctx.fill();
+
+      if(total>0){
+        ctx.fillStyle="#1D9E75"; // buy color
+        roundRectPath(ctx,barX,barY,barW*(buyPct/100),barH,4);
+        ctx.fill();
+      }
+
+      ctx.font="9px Anton, sans-serif";
+      ctx.fillStyle="rgba(255,255,255,0.6)";
+      ctx.fillText(total>0?`Community: ${buyPct}% Buy`:"No votes yet",cx+8,cy+imgSize+52);
     });
   }
 
@@ -612,7 +634,7 @@ async function shareShop(){
           if(navigator.canShare({files:[file]})){
             await navigator.share({
               title:"My FNSpots Item Shop Votes",
-              text:"Check out today's Fortnite Item Shop and vote Buy or Skip! 🛒 fnspots.com/shop",
+              text:"My Fortnite Item Shop votes vs the community! Do you agree? 🛒 fnspots.com/shop",
               files:[file]
             });
           } else {
