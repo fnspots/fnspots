@@ -1,14 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/><!DOCTYPE html>
-<html lang="en">
-<head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>FNSpots — Item Shop Vote</title>
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
   <meta name="description" content="Vote Buy or Skip on today's Fortnite Item Shop. See what the community thinks before you spend your V-Bucks."/>
   <style>
@@ -81,8 +79,8 @@
     }
 
     /* AUTH MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-    .modal-overlay.open{opacity:1;pointer-events:all;}
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;}
+    .modal-overlay.open{display:flex;opacity:1;}
     .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:18px;padding:26px;width:310px;max-width:90vw;display:flex;flex-direction:column;gap:14px;position:relative;}
     .modal-title{font-family:var(--fn);font-size:20px;letter-spacing:.06em;color:var(--text);text-align:center;}
     .modal-sub{font-size:11px;color:var(--muted);text-align:center;margin-top:-8px;}
@@ -450,449 +448,125 @@ async function onLoginSuccess(){
   renderShop();
 }
 
-function shareShop(){
-  const url="https://fnspots.com/shop";
-  const text="Vote Buy or Skip on today's Fortnite Item Shop 🛒 See what the community thinks before you spend your V-Bucks!";
-  if(navigator.share){
-    navigator.share({title:"FNSpots Item Shop Vote",text,url}).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(url);
-    alert("Link copied! "+text);
-  }
+function drawShopShareCard(){
+  const W=900,H=500;
+  const canvas=document.createElement("canvas");
+  canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext("2d");
+
+  // Background — galaxy gradient matching FNSpots brand
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,"#0d0221");
+  bg.addColorStop(0.4,"#3a1c71");
+  bg.addColorStop(0.7,"#7b3fb0");
+  bg.addColorStop(1,"#0d0221");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+
+  const gl=ctx.createRadialGradient(W*0.2,H*0.2,0,W*0.2,H*0.2,W*0.4);
+  gl.addColorStop(0,"rgba(255,255,255,0.07)");
+  gl.addColorStop(1,"rgba(255,255,255,0)");
+  ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
+
+  ctx.font="bold 22px Anton, sans-serif";
+  ctx.fillStyle="rgba(255,255,255,0.5)";
+  ctx.fillText("FNSPOTS.COM/SHOP",48,60);
+
+  ctx.font="bold 50px Anton, sans-serif";
+  ctx.fillStyle="#ffffff";
+  ctx.fillText(user?user.tag:"Player",48,130);
+
+  ctx.font="bold 22px Anton, sans-serif";
+  ctx.fillStyle="rgba(255,255,255,0.7)";
+  ctx.fillText("ITEM SHOP VOTES",48,165);
+
+  // Count my buy vs skip votes
+  let myBuy=0,mySkip=0;
+  Object.values(voteData).forEach(v=>{
+    if(v.myVote==="buy")myBuy++;
+    if(v.myVote==="skip")mySkip++;
+  });
+
+  ctx.font="bold 90px Anton, sans-serif";
+  ctx.fillStyle="#1D9E75";
+  ctx.fillText(myBuy,48,280);
+  ctx.font="bold 16px Anton, sans-serif";
+  ctx.fillStyle="rgba(255,255,255,0.6)";
+  ctx.fillText("BUYS",48,310);
+
+  ctx.font="bold 90px Anton, sans-serif";
+  ctx.fillStyle="#D4537E";
+  ctx.fillText(mySkip,280,280);
+  ctx.font="bold 16px Anton, sans-serif";
+  ctx.fillStyle="rgba(255,255,255,0.6)";
+  ctx.fillText("SKIPS",280,310);
+
+  // Today's date
+  ctx.font="14px Anton, sans-serif";
+  ctx.fillStyle="rgba(255,255,255,0.5)";
+  const dateText=document.getElementById("shopDate")?.textContent||"";
+  ctx.fillText(dateText,48,360);
+
+  // Footer
+  ctx.font="14px Anton, sans-serif";
+  ctx.fillStyle="rgba(255,255,255,0.3)";
+  ctx.fillText("Vote on today's Item Shop at fnspots.com/shop",48,H-20);
+
+  ctx.font="bold 14px Anton, sans-serif";
+  ctx.fillStyle="rgba(127,119,221,0.9)";
+  ctx.fillText("Use code GAMERMISTERE in the Item Shop",W-380,H-20);
+
+  return canvas;
 }
 
-(async function init(){
-  await checkAuth();
-  await loadShop();
-})();
-</script>
-</body>
-</html>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FNSpots — Item Shop Vote</title>
-  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script defer src="/_vercel/insights/script.js"></script>
-  <meta name="description" content="Vote Buy or Skip on today's Fortnite Item Shop. See what the community thinks before you spend your V-Bucks."/>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0;}
-    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
-    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem 1rem;}
-
-    .site-header{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
-    .site-brand{display:flex;flex-direction:column;gap:3px;}
-    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;white-space:nowrap;}
-    .back-btn:hover{background:var(--surface);}
-
-    .page-wrap{max-width:900px;margin:0 auto;}
-
-    .page-title{font-family:var(--fn);font-size:28px;letter-spacing:.05em;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:10px;}
-    .page-title img{height:32px;object-fit:contain;}
-    .page-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;}
-
-    .shop-date{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:1.5rem;}
-    .shop-date-label{font-family:var(--fn);font-size:11px;letter-spacing:.05em;color:var(--muted);}
-    .shop-date-val{font-family:var(--fn);font-size:16px;color:var(--text);}
-    .refresh-note{margin-left:auto;font-size:10px;color:var(--muted);}
-
-    .auth-gate{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-bottom:1.5rem;}
-    .auth-gate-title{font-family:var(--fn);font-size:16px;color:var(--text);margin-bottom:6px;}
-    .auth-gate-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
-    .auth-gate-btn{font-family:var(--fn);font-size:13px;letter-spacing:.05em;padding:10px 24px;border-radius:99px;border:none;background:var(--purple);color:#fff;cursor:pointer;}
-
-    .shop-grid{display:flex;flex-direction:column;gap:24px;}
-    .category-section{display:flex;flex-direction:column;gap:10px;}
-    .category-header{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:2px solid var(--border);}
-    .category-title{font-family:var(--fn);font-size:16px;letter-spacing:.04em;color:var(--text);}
-    .category-count{margin-left:auto;font-size:11px;color:var(--muted);}
-    .category-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
-
-    .item-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;}
-    .item-img-wrap{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
-    .item-img-wrap img{width:100%;height:100%;object-fit:cover;}
-    .item-info{padding:12px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
-    .item-name{font-family:var(--fn);font-size:13px;letter-spacing:.03em;color:var(--text);line-height:1.2;}
-    .item-price{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
-    .item-price img{width:14px;height:14px;object-fit:contain;}
-    .item-rarity{font-size:9px;letter-spacing:.05em;padding:2px 8px;border-radius:99px;display:inline-block;width:fit-content;font-family:var(--fn);}
-
-    .vote-section{padding:10px 14px;border-top:1px solid var(--border);}
-    .vote-bar-wrap{width:100%;height:8px;border-radius:99px;overflow:hidden;display:flex;margin-bottom:8px;background:var(--surface2);}
-    .vote-bar-buy{background:#1D9E75;height:100%;transition:width .3s;}
-    .vote-bar-skip{background:#D4537E;height:100%;transition:width .3s;}
-    .vote-pcts{display:flex;justify-content:space-between;font-size:10px;font-family:var(--fn);letter-spacing:.04em;margin-bottom:8px;}
-    .vote-pct-buy{color:#1D9E75;}
-    .vote-pct-skip{color:#D4537E;}
-    .vote-count{font-size:9px;color:var(--muted);text-align:center;margin-bottom:8px;}
-
-    .vote-btns{display:flex;gap:6px;}
-    .vote-btn{flex:1;font-family:var(--fn);font-size:11px;letter-spacing:.04em;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
-    .vote-btn:hover{border-color:var(--border-strong);}
-    .vote-btn.buy.active{background:#1D9E75;border-color:#1D9E75;color:#fff;}
-    .vote-btn.skip.active{background:#D4537E;border-color:#D4537E;color:#fff;}
-    .vote-btn:disabled{opacity:.5;cursor:not-allowed;}
-
-    .loading{text-align:center;padding:3rem;font-family:var(--fn);font-size:14px;letter-spacing:.06em;color:var(--muted);}
-    .error-msg{text-align:center;padding:2rem;color:#D4537E;font-size:13px;}
-
-    @media (max-width: 600px) {
-      .category-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
-      .page-title{font-size:20px;}
-    }
-
-    /* AUTH MODAL */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
-    .modal-overlay.open{opacity:1;pointer-events:all;}
-    .modal{background:var(--surface);border:1px solid var(--border-strong);border-radius:18px;padding:26px;width:310px;max-width:90vw;display:flex;flex-direction:column;gap:14px;position:relative;}
-    .modal-title{font-family:var(--fn);font-size:20px;letter-spacing:.06em;color:var(--text);text-align:center;}
-    .modal-sub{font-size:11px;color:var(--muted);text-align:center;margin-top:-8px;}
-    .modal-tabs{display:flex;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
-    .tab{flex:1;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:7px;text-align:center;cursor:pointer;color:var(--muted);background:var(--surface2);transition:all .15s;}
-    .tab.active{background:#7f77dd;color:#fff;}
-    .modal-fields{display:flex;flex-direction:column;gap:8px;}
-    .field-label{font-family:var(--fn);font-size:10px;letter-spacing:.05em;color:var(--muted);margin-bottom:2px;}
-    .field-input{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;outline:none;transition:border .15s;}
-    .field-input:focus{border-color:#7f77dd;}
-    .modal-cta{font-family:var(--fn);font-size:13px;letter-spacing:.06em;padding:11px;border-radius:10px;border:none;background:#7f77dd;color:#fff;cursor:pointer;transition:background .15s;}
-    .modal-cta:hover{background:#6560c5;}
-    .modal-error{font-size:11px;color:#D4537E;text-align:center;min-height:14px;}
-    .modal-close{position:absolute;top:13px;right:15px;font-size:17px;cursor:pointer;color:var(--muted);background:none;border:none;}
-    .modal-footer{font-size:10px;color:var(--muted);text-align:center;}
-  </style>
-</head>
-<body>
-
-<div class="page-wrap">
-  <div class="site-header">
-    <div class="site-brand">
-      <a href="/"><img src="/fnspots_logo.png" alt="FNSpots" style="height:32px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(127,119,221,.5));"/></a>
-    </div>
-    <a href="/" class="back-btn">← Tracker</a>
-  </div>
-
-  <div class="page-title">🛒 Item Shop Vote</div>
-  <div class="page-sub">Vote Buy or Skip on today's shop — see what the community thinks</div>
-
-  <div id="greetingCard" style="display:none;background:linear-gradient(135deg,#7f77dd,#D4537E);border-radius:14px;padding:16px 20px;margin-bottom:1.5rem;">
-    <div style="font-family:'Anton',sans-serif;font-size:18px;color:#fff;letter-spacing:.04em;" id="greetingName">Hi Player!</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:2px;">Are you ready to vote? 🗳️</div>
-  </div>
-
-  <div class="shop-date">
-    <div>
-      <div class="shop-date-label">TODAY'S SHOP</div>
-      <div class="shop-date-val" id="shopDate">Loading...</div>
-    </div>
-    <div class="refresh-note">Refreshes daily ~8PM ET</div>
-  </div>
-
-  <div id="authGate" class="auth-gate" style="display:none;">
-    <div class="auth-gate-title">👀 Browsing as a guest</div>
-    <div class="auth-gate-sub">Log in to FNSpots to vote Buy or Skip on items below</div>
-    <button class="auth-gate-btn" onclick="openModal()">Log In / Create Account</button>
-  </div>
-
-  <div class="modal-overlay" id="modalOverlay" onclick="handleOverlay(event)">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal()">✕</button>
-      <div class="modal-title"><img src="/fnspots_logo.png" alt="FNSpots" style="height:36px;object-fit:contain;vertical-align:middle;"/></div>
-      <div class="modal-sub" id="mSub">Save your collection across devices</div>
-      <div class="modal-tabs">
-        <div class="tab active" id="tCreate" onclick="switchTab('create')">Create Account</div>
-        <div class="tab" id="tLogin" onclick="switchTab('login')">Log In</div>
-      </div>
-      <div class="modal-fields" id="mFields"></div>
-      <div class="modal-error" id="mErr"></div>
-      <button class="modal-cta" id="mCta" onclick="handleAuth().catch(e=>console.error(e))">Create Account</button>
-      <div class="modal-footer">Your progress saves automatically ✨</div>
-    </div>
-  </div>
-
-  <div id="shopGrid" class="shop-grid">
-    <div class="loading">Loading today's Item Shop...</div>
-  </div>
-</div>
-
-<script>
-const SURL="https://rjqxkgdnmypfuvsgfeuh.supabase.co";
-const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqcXhrZ2RubXlwZnV2c2dmZXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MzY1MTMsImV4cCI6MjA5ODExMjUxM30.Y3Z1xIZ3W5shIyHdoTz59EOoKs8q_iSN1yspFvNLsWQ";
-const sb=supabase.createClient(SURL,SKEY);
-
-let user=null;
-let curTab="create";
-let shopItems=[];
-let voteData={}; // offerId -> {buy, skip, myVote}
-let todayDateStr="";
-
-const RARITY_COLORS={
-  common:{bg:"#E8E8E8",fg:"#555"},
-  uncommon:{bg:"#DFF5E1",fg:"#1D9E75"},
-  rare:{bg:"#DCEAFB",fg:"#378ADD"},
-  epic:{bg:"#EEE3FB",fg:"#9B5FC0"},
-  legendary:{bg:"#FCE6D8",fg:"#D85A30"},
-  marvel:{bg:"#FBDCDC",fg:"#D4537E"},
-  icon:{bg:"#D8F3F3",fg:"#1D9E9E"},
-  dc:{bg:"#DCE4FB",fg:"#534AB7"},
-  default:{bg:"#EEE",fg:"#888"}
-};
-
-async function checkAuth(){
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",session.user.id).single();
-    if(profile){user={tag:profile.gamertag,id:session.user.id};}
-  }
-  if(user){
-    document.getElementById("authGate").style.display="none";
-    document.getElementById("greetingCard").style.display="block";
-    document.getElementById("greetingName").textContent="Hi "+user.tag+"!";
-  } else {
-    document.getElementById("authGate").style.display="block";
-    document.getElementById("greetingCard").style.display="none";
-  }
-}
-
-async function loadShop(){
+async function shareShop(){
   try{
-    console.log("Fetching shop from fortnite-api.com...");
-    const controller=new AbortController();
-    const timeoutId=setTimeout(()=>controller.abort(),15000);
-    const res=await fetch("https://fortnite-api.com/v2/shop",{signal:controller.signal});
-    clearTimeout(timeoutId);
-    console.log("Response status:",res.status);
-    if(!res.ok)throw new Error("HTTP "+res.status);
-    const json=await res.json();
-    console.log("Shop data received:",json);
-    if(!json.data||!json.data.entries){throw new Error("No shop data in response");}
+    const canvas=drawShopShareCard();
+    const dataUrl=canvas.toDataURL("image/png");
+    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
-    todayDateStr=json.data.date?json.data.date.split("T")[0]:new Date().toISOString().split("T")[0];
-    document.getElementById("shopDate").textContent=new Date(todayDateStr).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
-
-    // Filter to items with brItems (skip pure jam tracks/music if too many), dedupe by offerId
-    shopItems=json.data.entries
-      .filter(e=>e.brItems&&e.brItems.length>0)
-      .map(e=>{
+    if(navigator.share&&navigator.canShare){
+      canvas.toBlob(async(blob)=>{
         try{
-          const item=e.brItems[0];
-          const img=e.newDisplayAsset?.renderImages?.[0]?.image || item?.images?.featured || item?.images?.icon || item?.images?.smallIcon || null;
-          const isBundle=!!e.bundle;
-          return{
-            offerId:e.offerId||Math.random().toString(),
-            name:isBundle?(e.bundle?.name||"Bundle"):(item?.name||"Unknown Item"),
-            price:e.finalPrice||0,
-            img:img,
-            rarity:(item?.rarity?.value||"common").toLowerCase(),
-            rarityLabel:item?.rarity?.displayValue||"Common",
-            type:isBundle?"bundle":(item?.type?.value||"other"),
-            typeLabel:isBundle?"Bundle":(item?.type?.displayValue||"Other")
-          };
-        }catch(itemErr){
-          console.warn("Skipping malformed item:",itemErr,e);
-          return null;
+          const file=new File([blob],"fnspots-shop-vote.png",{type:"image/png"});
+          if(navigator.canShare({files:[file]})){
+            await navigator.share({
+              title:"My FNSpots Item Shop Votes",
+              text:"Check out today's Fortnite Item Shop and vote Buy or Skip! 🛒 fnspots.com/shop",
+              files:[file]
+            });
+          } else {
+            fallbackImage(dataUrl,isIOS);
+          }
+        }catch(e){
+          if(e.name!=="AbortError")fallbackImage(dataUrl,isIOS);
         }
-      })
-      .filter(i=>i&&i.img); // only valid items with images
-
-    console.log("Processed shopItems count:",shopItems.length);
-    console.log("First item sample:",shopItems[0]);
-
-    await loadVotes();
-    console.log("Votes loaded, calling renderShop...");
-    renderShop();
-    console.log("renderShop completed");
-  }catch(err){
-    console.error("Shop load error:",err);
-    document.getElementById("shopGrid").innerHTML=`<div class="error-msg">Could not load today's shop.<br/><span style="font-size:10px;opacity:.7;">${err.message||err}</span></div>`;
-  }
-}
-
-async function loadVotes(){
-  try{
-    console.log("Loading all-time votes, item count:",shopItems.length);
-    const {data,error}=await sb.from("shop_votes").select("offer_id,vote,user_id");
-    if(error){console.error("loadVotes error:",error);voteData={};return;}
-    console.log("Votes data received:",data?.length||0,"rows");
-    voteData={};
-    if(data){
-      data.forEach(v=>{
-        if(!voteData[v.offer_id])voteData[v.offer_id]={buy:0,skip:0,myVote:null};
-        voteData[v.offer_id][v.vote]++;
-        if(user&&v.user_id===user.id)voteData[v.offer_id].myVote=v.vote;
-      });
+      },"image/png");
+    } else {
+      fallbackImage(dataUrl,isIOS);
     }
-  }catch(e){
-    console.error("loadVotes exception:",e);
-    voteData={};
+  }catch(err){
+    console.error("Share error:",err);
+    alert("Couldn't generate share image. Please try again.");
   }
 }
 
-const CATEGORY_ORDER=["outfit","pickaxe","backpack","emote","glider","other","bundle"];
-const CATEGORY_LABELS={
-  outfit:"👤 Outfits",
-  pickaxe:"⛏️ Pickaxes",
-  backpack:"🎒 Back Bling",
-  emote:"💃 Emotes",
-  glider:"🪂 Gliders",
-  other:"✨ Other",
-  bundle:"📦 Bundles"
-};
-
-function renderShop(){
-  const grid=document.getElementById("shopGrid");
-  grid.innerHTML="";
-
-  // Group items by category
-  const grouped={};
-  shopItems.forEach(item=>{
-    const cat=CATEGORY_ORDER.includes(item.type)?item.type:"other";
-    if(!grouped[cat])grouped[cat]=[];
-    grouped[cat].push(item);
-  });
-
-  // Render in fixed category order
-  CATEGORY_ORDER.forEach(cat=>{
-    const items=grouped[cat];
-    if(!items||items.length===0)return;
-
-    const section=document.createElement("div");
-    section.className="category-section";
-    section.innerHTML=`
-      <div class="category-header">
-        <span class="category-title">${CATEGORY_LABELS[cat]||cat}</span>
-        <span class="category-count">${items.length} item${items.length!==1?"s":""}</span>
-      </div>
-      <div class="category-grid"></div>
+function fallbackImage(dataUrl,isIOS){
+  if(isIOS){
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;';
+    overlay.innerHTML=`
+      <div style="font-family:'Anton',sans-serif;font-size:16px;color:#fff;text-align:center;letter-spacing:.04em;">👆 Press and hold the image<br/>then tap "Save to Photos"</div>
+      <img src="${dataUrl}" style="max-width:90vw;max-height:65vh;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.5);"/>
+      <button style="font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.05em;padding:10px 24px;border-radius:99px;border:none;background:#7f77dd;color:#fff;">Close</button>
     `;
-    const catGrid=section.querySelector(".category-grid");
-
-    items.forEach(item=>{
-      const votes=voteData[item.offerId]||{buy:0,skip:0,myVote:null};
-      const total=votes.buy+votes.skip;
-      const buyPct=total>0?Math.round(votes.buy/total*100):50;
-      const skipPct=100-buyPct;
-      const rarityStyle=RARITY_COLORS[item.rarity]||RARITY_COLORS.default;
-
-      const card=document.createElement("div");
-      card.className="item-card";
-      card.innerHTML=`
-        <div class="item-img-wrap"><img src="${item.img}" alt="${item.name}" loading="lazy"/></div>
-        <div class="item-info">
-          <div class="item-rarity" style="background:${rarityStyle.bg};color:${rarityStyle.fg};">${item.rarityLabel}</div>
-          <div class="item-name">${item.name}</div>
-          <div class="item-price"><img src="https://fortnite-api.com/images/vbuck.png" alt="vbucks"/> ${item.price.toLocaleString()}</div>
-        </div>
-        <div class="vote-section">
-          <div class="vote-bar-wrap">
-            <div class="vote-bar-buy" style="width:${total>0?buyPct:50}%"></div>
-            <div class="vote-bar-skip" style="width:${total>0?skipPct:50}%"></div>
-          </div>
-          <div class="vote-pcts">
-            <span class="vote-pct-buy">👍 ${total>0?buyPct:0}%</span>
-            <span class="vote-pct-skip">👎 ${total>0?skipPct:0}%</span>
-          </div>
-          <div class="vote-count">${total} vote${total!==1?"s":""}</div>
-          <div class="vote-btns">
-            <button class="vote-btn buy ${votes.myVote==='buy'?'active':''}" ${!user?'disabled':''} onclick="castVote('${item.offerId}','buy',this)">👍 Buy</button>
-            <button class="vote-btn skip ${votes.myVote==='skip'?'active':''}" ${!user?'disabled':''} onclick="castVote('${item.offerId}','skip',this)">👎 Skip</button>
-          </div>
-        </div>
-      `;
-      catGrid.appendChild(card);
-    });
-
-    grid.appendChild(section);
-  });
-}
-
-async function castVote(offerId,vote,btn){
-  if(!user)return;
-  btn.disabled=true;
-  const otherBtn=btn.parentElement.querySelector(vote==="buy"?".vote-btn.skip":".vote-btn.buy");
-
-  try{
-    const {error}=await sb.from("shop_votes").upsert({
-      user_id:user.id,
-      offer_id:offerId,
-      vote:vote,
-      shop_date:todayDateStr
-    },{onConflict:"user_id,offer_id"});
-
-    if(error)throw error;
-
-    await loadVotes();
-    renderShop();
-  }catch(err){
-    console.error("Vote error:",err);
-    alert("Couldn't save your vote. Please try again.");
-  }
-  btn.disabled=false;
-}
-
-function openModal(){
-  renderAuthFields();
-  document.getElementById("modalOverlay").classList.add("open");
-}
-function closeModal(){document.getElementById("modalOverlay").classList.remove("open");}
-function handleOverlay(e){if(e.target===document.getElementById("modalOverlay"))closeModal();}
-function switchTab(t){
-  curTab=t;
-  document.getElementById("tCreate").classList.toggle("active",t==="create");
-  document.getElementById("tLogin").classList.toggle("active",t==="login");
-  document.getElementById("mCta").textContent=t==="create"?"Create Account":"Log In";
-  document.getElementById("mSub").textContent=t==="create"?"Save your collection across devices":"Welcome back!";
-  document.getElementById("mErr").textContent="";
-  renderAuthFields();
-}
-function renderAuthFields(){
-  document.getElementById("mFields").innerHTML=curTab==="create"
-    ?`<div><div class="field-label">Gamertag</div><input class="field-input" id="f-tag" placeholder="e.g. Mutron" maxlength="20"></div><div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Min. 6 characters"></div>`
-    :`<div><div class="field-label">Email</div><input class="field-input" id="f-email" type="email" placeholder="you@email.com"></div><div><div class="field-label">Password</div><input class="field-input" id="f-pass" type="password" placeholder="Your password"></div>`;
-}
-async function handleAuth(){
-  const err=document.getElementById("mErr");err.textContent="";
-  const email=document.getElementById("f-email")?.value.trim();
-  const pass=document.getElementById("f-pass")?.value;
-  if(!email||!pass){err.textContent="Please fill in all fields.";return;}
-  if(pass.length<6){err.textContent="Password must be at least 6 characters.";return;}
-  const cta=document.getElementById("mCta");
-  cta.textContent="...";cta.disabled=true;
-
-  if(curTab==="create"){
-    const tag=document.getElementById("f-tag")?.value.trim();
-    if(!tag){err.textContent="Gamertag is required.";cta.textContent="Create Account";cta.disabled=false;return;}
-    const {data:existing}=await sb.from("profiles").select("gamertag").eq("gamertag",tag).single();
-    if(existing){err.textContent="Gamertag already taken.";cta.textContent="Create Account";cta.disabled=false;return;}
-    const {data,error}=await sb.auth.signUp({email,password:pass});
-    if(error){err.textContent=error.message;cta.textContent="Create Account";cta.disabled=false;return;}
-    await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
-    user={tag,email,id:data.user.id};
-    closeModal();
-    await onLoginSuccess();
+    overlay.querySelector('button').onclick=()=>overlay.remove();
+    document.body.appendChild(overlay);
   } else {
-    const {data,error}=await sb.auth.signInWithPassword({email,password:pass});
-    if(error){err.textContent=error.message||"Login failed. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
-    if(!data||!data.user){err.textContent="No user returned. Try again.";cta.textContent="Log In";cta.disabled=false;return;}
-    let {data:profile,error:pe}=await sb.from("profiles").select("gamertag").eq("id",data.user.id).single();
-    if(pe||!profile){
-      const tag=prompt("Welcome! Please enter your gamertag to complete setup:");
-      if(!tag){err.textContent="Gamertag required.";cta.textContent="Log In";cta.disabled=false;await sb.auth.signOut();return;}
-      const {error:ie}=await sb.from("profiles").insert({id:data.user.id,gamertag:tag});
-      if(ie){err.textContent="Could not create profile: "+ie.message;cta.textContent="Log In";cta.disabled=false;return;}
-      profile={gamertag:tag};
-    }
-    user={tag:profile.gamertag,email,id:data.user.id};
-    closeModal();
-    await onLoginSuccess();
+    const link=document.createElement("a");
+    link.download="fnspots-shop-vote.png";
+    link.href=dataUrl;
+    link.click();
   }
-  cta.disabled=false;
-}
-
-async function onLoginSuccess(){
-  document.getElementById("authGate").style.display="none";
-  document.getElementById("greetingCard").style.display="block";
-  document.getElementById("greetingName").textContent="Hi "+user.tag+"!";
-  await loadVotes();
-  renderShop();
 }
 
 (async function init(){
