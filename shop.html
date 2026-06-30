@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FNSpots — Item Shop Vote</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
+  <meta name="description" content="Vote Buy or Skip on today's Fortnite Item Shop. See what the community thinks before you spend your V-Bucks."/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    :root{--fn:'Anton',sans-serif;--bg:#F5F0E8;--surface:#FFFFFF;--surface2:#EDE8DF;--border:#D8D0C4;--border-strong:#B8AFA0;--text:#2A2520;--muted:#8A8278;--purple:#7f77dd;}
+    body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1.5rem 1rem;}
+
+    .site-header{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem;}
+    .site-brand{display:flex;flex-direction:column;gap:3px;}
+    .back-btn{margin-left:auto;font-family:var(--fn);font-size:11px;letter-spacing:.05em;padding:6px 14px;border-radius:99px;border:1.5px solid var(--border-strong);color:var(--muted);background:transparent;cursor:pointer;text-decoration:none;white-space:nowrap;}
+    .back-btn:hover{background:var(--surface);}
+
+    .page-wrap{max-width:900px;margin:0 auto;}
+
+    .page-title{font-family:var(--fn);font-size:28px;letter-spacing:.05em;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:10px;}
+    .page-title img{height:32px;object-fit:contain;}
+    .page-sub{font-size:12px;color:var(--muted);margin-bottom:1.5rem;}
+
+    .shop-date{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 18px;margin-bottom:1.5rem;}
+    .shop-date-label{font-family:var(--fn);font-size:11px;letter-spacing:.05em;color:var(--muted);}
+    .shop-date-val{font-family:var(--fn);font-size:16px;color:var(--text);}
+    .refresh-note{margin-left:auto;font-size:10px;color:var(--muted);}
+
+    .auth-gate{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:center;margin-bottom:1.5rem;}
+    .auth-gate-title{font-family:var(--fn);font-size:16px;color:var(--text);margin-bottom:6px;}
+    .auth-gate-sub{font-size:12px;color:var(--muted);margin-bottom:14px;}
+    .auth-gate-btn{font-family:var(--fn);font-size:13px;letter-spacing:.05em;padding:10px 24px;border-radius:99px;border:none;background:var(--purple);color:#fff;cursor:pointer;}
+
+    .shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+
+    .item-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;}
+    .item-img-wrap{width:100%;aspect-ratio:1;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;}
+    .item-img-wrap img{width:100%;height:100%;object-fit:cover;}
+    .item-info{padding:12px 14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+    .item-name{font-family:var(--fn);font-size:13px;letter-spacing:.03em;color:var(--text);line-height:1.2;}
+    .item-price{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);}
+    .item-price img{width:14px;height:14px;object-fit:contain;}
+    .item-rarity{font-size:9px;letter-spacing:.05em;padding:2px 8px;border-radius:99px;display:inline-block;width:fit-content;font-family:var(--fn);}
+
+    .vote-section{padding:10px 14px;border-top:1px solid var(--border);}
+    .vote-bar-wrap{width:100%;height:8px;border-radius:99px;overflow:hidden;display:flex;margin-bottom:8px;background:var(--surface2);}
+    .vote-bar-buy{background:#1D9E75;height:100%;transition:width .3s;}
+    .vote-bar-skip{background:#D4537E;height:100%;transition:width .3s;}
+    .vote-pcts{display:flex;justify-content:space-between;font-size:10px;font-family:var(--fn);letter-spacing:.04em;margin-bottom:8px;}
+    .vote-pct-buy{color:#1D9E75;}
+    .vote-pct-skip{color:#D4537E;}
+    .vote-count{font-size:9px;color:var(--muted);text-align:center;margin-bottom:8px;}
+
+    .vote-btns{display:flex;gap:6px;}
+    .vote-btn{flex:1;font-family:var(--fn);font-size:11px;letter-spacing:.04em;padding:8px;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;transition:all .15s;}
+    .vote-btn:hover{border-color:var(--border-strong);}
+    .vote-btn.buy.active{background:#1D9E75;border-color:#1D9E75;color:#fff;}
+    .vote-btn.skip.active{background:#D4537E;border-color:#D4537E;color:#fff;}
+    .vote-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+    .loading{text-align:center;padding:3rem;font-family:var(--fn);font-size:14px;letter-spacing:.06em;color:var(--muted);}
+    .error-msg{text-align:center;padding:2rem;color:#D4537E;font-size:13px;}
+
+    @media (max-width: 600px) {
+      .shop-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+      .page-title{font-size:20px;}
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div class="site-header">
+    <div class="site-brand">
+      <a href="/"><img src="/fnspots_logo.png" alt="FNSpots" style="height:32px;object-fit:contain;filter:drop-shadow(0 2px 8px rgba(127,119,221,.5));"/></a>
+    </div>
+    <a href="/" class="back-btn">← Tracker</a>
+  </div>
+
+  <div class="page-title">🛒 Item Shop Vote</div>
+  <div class="page-sub">Vote Buy or Skip on today's shop — see what the community thinks</div>
+
+  <div class="shop-date">
+    <div>
+      <div class="shop-date-label">TODAY'S SHOP</div>
+      <div class="shop-date-val" id="shopDate">Loading...</div>
+    </div>
+    <div class="refresh-note">Refreshes daily ~8PM ET</div>
+  </div>
+
+  <div id="authGate" class="auth-gate" style="display:none;">
+    <div class="auth-gate-title">Log in to vote</div>
+    <div class="auth-gate-sub">You need an FNSpots account to vote Buy or Skip</div>
+    <button class="auth-gate-btn" onclick="window.location.href='/'">Go to Tracker to Log In</button>
+  </div>
+
+  <div id="shopGrid" class="shop-grid">
+    <div class="loading">Loading today's Item Shop...</div>
+  </div>
+</div>
+
+<script>
+const SURL="https://rjqxkgdnmypfuvsgfeuh.supabase.co";
+const SKEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJqcXhrZ2RubXlwZnV2c2dmZXVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1MzY1MTMsImV4cCI6MjA5ODExMjUxM30.Y3Z1xIZ3W5shIyHdoTz59EOoKs8q_iSN1yspFvNLsWQ";
+const sb=supabase.createClient(SURL,SKEY);
+
+let user=null;
+let shopItems=[];
+let voteData={}; // offerId -> {buy, skip, myVote}
+let todayDateStr="";
+
+const RARITY_COLORS={
+  common:{bg:"#E8E8E8",fg:"#555"},
+  uncommon:{bg:"#DFF5E1",fg:"#1D9E75"},
+  rare:{bg:"#DCEAFB",fg:"#378ADD"},
+  epic:{bg:"#EEE3FB",fg:"#9B5FC0"},
+  legendary:{bg:"#FCE6D8",fg:"#D85A30"},
+  marvel:{bg:"#FBDCDC",fg:"#D4537E"},
+  icon:{bg:"#D8F3F3",fg:"#1D9E9E"},
+  dc:{bg:"#DCE4FB",fg:"#534AB7"},
+  default:{bg:"#EEE",fg:"#888"}
+};
+
+async function checkAuth(){
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",session.user.id).single();
+    if(profile){user={tag:profile.gamertag,id:session.user.id};}
+  }
+  document.getElementById("authGate").style.display=user?"none":"block";
+}
+
+async function loadShop(){
+  try{
+    const res=await fetch("https://fortnite-api.com/v2/shop");
+    const json=await res.json();
+    if(!json.data||!json.data.entries){throw new Error("No shop data");}
+
+    todayDateStr=json.data.date?json.data.date.split("T")[0]:new Date().toISOString().split("T")[0];
+    document.getElementById("shopDate").textContent=new Date(todayDateStr).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+
+    // Filter to items with brItems (skip pure jam tracks/music if too many), dedupe by offerId
+    shopItems=json.data.entries
+      .filter(e=>e.brItems&&e.brItems.length>0)
+      .map(e=>{
+        const item=e.brItems[0];
+        const img=e.newDisplayAsset?.renderImages?.[0]?.image || item.images?.featured || item.images?.icon || item.images?.smallIcon;
+        const isBundle=!!e.bundle;
+        return{
+          offerId:e.offerId,
+          name:isBundle?e.bundle.name:item.name,
+          price:e.finalPrice,
+          img:img,
+          rarity:(item.rarity?.value||"common").toLowerCase(),
+          rarityLabel:item.rarity?.displayValue||"Common"
+        };
+      })
+      .filter(i=>i.img); // only items with images
+
+    await loadVotes();
+    renderShop();
+  }catch(err){
+    console.error("Shop load error:",err);
+    document.getElementById("shopGrid").innerHTML='<div class="error-msg">Could not load today\'s shop. Please try again later.</div>';
+  }
+}
+
+async function loadVotes(){
+  const offerIds=shopItems.map(i=>i.offerId);
+  const {data}=await sb.from("shop_votes").select("offer_id,vote,user_id").eq("shop_date",todayDateStr).in("offer_id",offerIds);
+  voteData={};
+  if(data){
+    data.forEach(v=>{
+      if(!voteData[v.offer_id])voteData[v.offer_id]={buy:0,skip:0,myVote:null};
+      voteData[v.offer_id][v.vote]++;
+      if(user&&v.user_id===user.id)voteData[v.offer_id].myVote=v.vote;
+    });
+  }
+}
+
+function renderShop(){
+  const grid=document.getElementById("shopGrid");
+  grid.innerHTML="";
+
+  shopItems.forEach(item=>{
+    const votes=voteData[item.offerId]||{buy:0,skip:0,myVote:null};
+    const total=votes.buy+votes.skip;
+    const buyPct=total>0?Math.round(votes.buy/total*100):50;
+    const skipPct=100-buyPct;
+    const rarityStyle=RARITY_COLORS[item.rarity]||RARITY_COLORS.default;
+
+    const card=document.createElement("div");
+    card.className="item-card";
+    card.innerHTML=`
+      <div class="item-img-wrap"><img src="${item.img}" alt="${item.name}" loading="lazy"/></div>
+      <div class="item-info">
+        <div class="item-rarity" style="background:${rarityStyle.bg};color:${rarityStyle.fg};">${item.rarityLabel}</div>
+        <div class="item-name">${item.name}</div>
+        <div class="item-price"><img src="https://fortnite-api.com/images/vbuck.png" alt="vbucks"/> ${item.price.toLocaleString()}</div>
+      </div>
+      <div class="vote-section">
+        <div class="vote-bar-wrap">
+          <div class="vote-bar-buy" style="width:${total>0?buyPct:50}%"></div>
+          <div class="vote-bar-skip" style="width:${total>0?skipPct:50}%"></div>
+        </div>
+        <div class="vote-pcts">
+          <span class="vote-pct-buy">👍 ${total>0?buyPct:0}%</span>
+          <span class="vote-pct-skip">👎 ${total>0?skipPct:0}%</span>
+        </div>
+        <div class="vote-count">${total} vote${total!==1?"s":""}</div>
+        <div class="vote-btns">
+          <button class="vote-btn buy ${votes.myVote==='buy'?'active':''}" ${!user?'disabled':''} onclick="castVote('${item.offerId}','buy',this)">👍 Buy</button>
+          <button class="vote-btn skip ${votes.myVote==='skip'?'active':''}" ${!user?'disabled':''} onclick="castVote('${item.offerId}','skip',this)">👎 Skip</button>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function castVote(offerId,vote,btn){
+  if(!user)return;
+  btn.disabled=true;
+  const otherBtn=btn.parentElement.querySelector(vote==="buy"?".vote-btn.skip":".vote-btn.buy");
+
+  try{
+    const {error}=await sb.from("shop_votes").upsert({
+      user_id:user.id,
+      offer_id:offerId,
+      vote:vote,
+      shop_date:todayDateStr
+    },{onConflict:"user_id,offer_id,shop_date"});
+
+    if(error)throw error;
+
+    await loadVotes();
+    renderShop();
+  }catch(err){
+    console.error("Vote error:",err);
+    alert("Couldn't save your vote. Please try again.");
+  }
+  btn.disabled=false;
+}
+
+(async function init(){
+  await checkAuth();
+  await loadShop();
+})();
+</script>
+</body>
+</html>
