@@ -538,12 +538,14 @@ function resetAll(){
 
 renderFields();
 buildGrid();
-initAuth();
 
-// Auto-open login modal if arriving from another page (e.g. /shop)
-if(new URLSearchParams(window.location.search).get("login")==="1"){
-  setTimeout(()=>{ if(!user) openModal(); },300);
-}
+(async function(){
+  await initAuth();
+  // Auto-open login modal if arriving from another page (e.g. /shop)
+  if(new URLSearchParams(window.location.search).get("login")==="1" && !user){
+    openModal();
+  }
+})();
 </script>
 
 <!-- SHARE OVERLAY -->
