@@ -6,7 +6,6 @@
   <title>FNSpots — Item Shop Vote</title>
   <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script defer src="/_vercel/insights/script.js"></script>
   <meta name="description" content="Vote Buy or Skip on today's Fortnite Item Shop. See what the community thinks before you spend your V-Bucks."/>
   <style>
@@ -448,232 +447,17 @@ async function onLoginSuccess(){
   renderShop();
 }
 
-function loadImg(src){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    img.crossOrigin="anonymous";
-    img.onload=()=>resolve(img);
-    img.onerror=()=>resolve(null); // don't fail the whole card if one image fails
-    img.src=src;
-  });
-}
-
-function roundRectPath(ctx,x,y,w,h,r){
-  ctx.beginPath();
-  ctx.moveTo(x+r,y);
-  ctx.lineTo(x+w-r,y);
-  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
-  ctx.lineTo(x+w,y+h-r);
-  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
-  ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
-  ctx.lineTo(x,y+r);
-  ctx.quadraticCurveTo(x,y,x+r,y);
-  ctx.closePath();
-}
-
-async function drawShopShareCard(){
-  // Get items I voted on, up to 6, prioritizing my own votes
-  const myVotedItems=shopItems
-    .filter(i=>voteData[i.offerId]?.myVote)
-    .slice(0,6);
-
-  const SCALE=2.5; // resolution multiplier — keeps all coordinates below in "logical" px
-  const W=900;
-  const cols=3;
-  const rows=Math.ceil(myVotedItems.length/cols)||1;
-  const cellSize=260;
-  const headerH=140;
-  const footerH=70;
-  const padding=30;
-  const H=headerH+rows*cellSize+footerH;
-
-  const canvas=document.createElement("canvas");
-  canvas.width=W*SCALE;canvas.height=H*SCALE;
-  const ctx=canvas.getContext("2d");
-  ctx.scale(SCALE,SCALE); // all subsequent drawing uses logical W/H coordinates, rendered at higher pixel density
-
-  // Background — galaxy gradient
-  const bg=ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,"#0d0221");
-  bg.addColorStop(0.4,"#3a1c71");
-  bg.addColorStop(0.7,"#7b3fb0");
-  bg.addColorStop(1,"#0d0221");
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
-
-  const gl=ctx.createRadialGradient(W*0.15,H*0.1,0,W*0.15,H*0.1,W*0.4);
-  gl.addColorStop(0,"rgba(255,255,255,0.08)");
-  gl.addColorStop(1,"rgba(255,255,255,0)");
-  ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
-
-  // Header
-  ctx.font="bold 18px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.5)";
-  ctx.fillText("FNSPOTS.COM/SHOP",padding,40);
-
-  ctx.font="bold 38px Anton, sans-serif";
-  ctx.fillStyle="#ffffff";
-  ctx.fillText((user?user.tag:"Player")+"'s Item Shop Votes",padding,85);
-
-  let myBuy=0,mySkip=0;
-  Object.values(voteData).forEach(v=>{
-    if(v.myVote==="buy")myBuy++;
-    if(v.myVote==="skip")mySkip++;
-  });
-  ctx.font="bold 16px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.7)";
-  ctx.fillText(`✅ ${myBuy} BUY   ❌ ${mySkip} SKIP`,padding,115);
-
-  // Item grid
-  if(myVotedItems.length===0){
-    ctx.font="bold 18px Anton, sans-serif";
-    ctx.fillStyle="rgba(255,255,255,0.6)";
-    ctx.fillText("No votes yet today — go vote!",padding,headerH+50);
+function shareShop(){
+  const url="https://fnspots.com/shop";
+  const text="Check what the community will Buy or Skip in the Fortnite Item Shop \ud83d\uded2 Use creator code GAMERMISTERE to support!";
+  if(navigator.share){
+    navigator.share({title:"FNSpots Item Shop Vote",text,url}).catch(()=>{});
   } else {
-    const images=await Promise.all(myVotedItems.map(i=>loadImg(i.img)));
-    myVotedItems.forEach((item,idx)=>{
-      const col=idx%cols;
-      const row=Math.floor(idx/cols);
-      const cx=padding+col*((W-padding*2)/cols);
-      const cy=headerH+row*cellSize;
-      const cw=(W-padding*2)/cols-12;
-      const ch=cellSize-16;
-
-      // Card background
-      ctx.fillStyle="rgba(255,255,255,0.08)";
-      roundRectPath(ctx,cx,cy,cw,ch,12);
-      ctx.fill();
-
-      // Item image
-      const img=images[idx];
-      const imgSize=Math.min(cw,ch-70);
-      const imgX=cx+(cw-imgSize)/2;
-      const imgY=cy+8;
-      if(img){
-        ctx.save();
-        roundRectPath(ctx,imgX,imgY,imgSize,imgSize,8);
-        ctx.clip();
-        ctx.drawImage(img,imgX,imgY,imgSize,imgSize);
-        ctx.restore();
-      } else {
-        ctx.fillStyle="rgba(255,255,255,0.05)";
-        roundRectPath(ctx,imgX,imgY,imgSize,imgSize,8);
-        ctx.fill();
-      }
-
-      // Vote badge
-      const vote=voteData[item.offerId]?.myVote;
-      const badgeColor=vote==="buy"?"#1D9E75":"#D4537E";
-      const badgeText=vote==="buy"?"BUY":"SKIP";
-      ctx.font="bold 12px Anton, sans-serif";
-      const badgeW=ctx.measureText(badgeText).width+20;
-      ctx.fillStyle=badgeColor;
-      roundRectPath(ctx,imgX+imgSize-badgeW-4,imgY+4,badgeW,22,11);
-      ctx.fill();
-      ctx.fillStyle="#fff";
-      ctx.textAlign="center";
-      ctx.fillText(badgeText,imgX+imgSize-badgeW/2-4,imgY+19);
-      ctx.textAlign="left";
-
-      // Item name
-      ctx.font="bold 11px Anton, sans-serif";
-      ctx.fillStyle="#fff";
-      let name=item.name;
-      if(name.length>22)name=name.substring(0,20)+"…";
-      ctx.fillText(name,cx+8,cy+imgSize+22);
-
-      // Community vote bar
-      const votes=voteData[item.offerId]||{buy:0,skip:0};
-      const total=votes.buy+votes.skip;
-      const buyPct=total>0?Math.round(votes.buy/total*100):50;
-      const barX=cx+8,barY=cy+imgSize+32,barW=cw-16,barH=8;
-
-      ctx.fillStyle="rgba(212,83,126,0.5)"; // skip color base
-      roundRectPath(ctx,barX,barY,barW,barH,4);
-      ctx.fill();
-
-      if(total>0){
-        ctx.fillStyle="#1D9E75"; // buy color
-        roundRectPath(ctx,barX,barY,barW*(buyPct/100),barH,4);
-        ctx.fill();
-      }
-
-      ctx.font="9px Anton, sans-serif";
-      ctx.fillStyle="rgba(255,255,255,0.6)";
-      ctx.fillText(total>0?`Community: ${buyPct}% Buy`:"No votes yet",cx+8,cy+imgSize+52);
-    });
-  }
-
-  // Footer
-  ctx.font="14px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.3)";
-  ctx.fillText("Vote on today's Item Shop at fnspots.com/shop",padding,H-22);
-
-  ctx.font="bold 13px Anton, sans-serif";
-  ctx.fillStyle="rgba(127,119,221,0.95)";
-  ctx.textAlign="right";
-  ctx.fillText("Use code GAMERMISTERE",W-padding,H-22);
-  ctx.textAlign="left";
-
-  return canvas;
-}
-
-async function shareShop(){
-  const btn=event?.target;
-  const originalText=btn?.textContent;
-  if(btn){btn.textContent="Generating...";btn.disabled=true;}
-  try{
-    const canvas=await drawShopShareCard();
-    const dataUrl=canvas.toDataURL("image/png");
-    const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-
-    if(navigator.share&&navigator.canShare){
-      canvas.toBlob(async(blob)=>{
-        try{
-          const file=new File([blob],"fnspots-shop-vote.png",{type:"image/png"});
-          if(navigator.canShare({files:[file]})){
-            await navigator.share({
-              title:"My FNSpots Item Shop Votes",
-              text:"My Fortnite Item Shop votes vs the community! Do you agree? 🛒 fnspots.com/shop",
-              files:[file]
-            });
-          } else {
-            fallbackImage(dataUrl,isIOS);
-          }
-        }catch(e){
-          if(e.name!=="AbortError")fallbackImage(dataUrl,isIOS);
-        }
-        if(btn){btn.textContent=originalText;btn.disabled=false;}
-      },"image/png");
-    } else {
-      fallbackImage(dataUrl,isIOS);
-      if(btn){btn.textContent=originalText;btn.disabled=false;}
-    }
-  }catch(err){
-    if(btn){btn.textContent=originalText;btn.disabled=false;}
-    console.error("Share error:",err);
-    alert("Couldn't generate share image. Please try again.");
+    navigator.clipboard.writeText(text+" "+url);
+    alert("Link copied to clipboard!\n\n"+text+"\n"+url);
   }
 }
 
-function fallbackImage(dataUrl,isIOS){
-  if(isIOS){
-    const overlay=document.createElement('div');
-    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:16px;';
-    overlay.innerHTML=`
-      <div style="font-family:'Anton',sans-serif;font-size:16px;color:#fff;text-align:center;letter-spacing:.04em;">👆 Press and hold the image<br/>then tap "Save to Photos"</div>
-      <img src="${dataUrl}" style="max-width:90vw;max-height:65vh;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.5);"/>
-      <button style="font-family:'Anton',sans-serif;font-size:13px;letter-spacing:.05em;padding:10px 24px;border-radius:99px;border:none;background:#7f77dd;color:#fff;">Close</button>
-    `;
-    overlay.querySelector('button').onclick=()=>overlay.remove();
-    document.body.appendChild(overlay);
-  } else {
-    const link=document.createElement("a");
-    link.download="fnspots-shop-vote.png";
-    link.href=dataUrl;
-    link.click();
-  }
-}
 
 (async function init(){
   await checkAuth();
