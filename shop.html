@@ -153,22 +153,32 @@ async function loadShop(){
     shopItems=json.data.entries
       .filter(e=>e.brItems&&e.brItems.length>0)
       .map(e=>{
-        const item=e.brItems[0];
-        const img=e.newDisplayAsset?.renderImages?.[0]?.image || item.images?.featured || item.images?.icon || item.images?.smallIcon;
-        const isBundle=!!e.bundle;
-        return{
-          offerId:e.offerId,
-          name:isBundle?e.bundle.name:item.name,
-          price:e.finalPrice,
-          img:img,
-          rarity:(item.rarity?.value||"common").toLowerCase(),
-          rarityLabel:item.rarity?.displayValue||"Common"
-        };
+        try{
+          const item=e.brItems[0];
+          const img=e.newDisplayAsset?.renderImages?.[0]?.image || item?.images?.featured || item?.images?.icon || item?.images?.smallIcon || null;
+          const isBundle=!!e.bundle;
+          return{
+            offerId:e.offerId||Math.random().toString(),
+            name:isBundle?(e.bundle?.name||"Bundle"):(item?.name||"Unknown Item"),
+            price:e.finalPrice||0,
+            img:img,
+            rarity:(item?.rarity?.value||"common").toLowerCase(),
+            rarityLabel:item?.rarity?.displayValue||"Common"
+          };
+        }catch(itemErr){
+          console.warn("Skipping malformed item:",itemErr,e);
+          return null;
+        }
       })
-      .filter(i=>i.img); // only items with images
+      .filter(i=>i&&i.img); // only valid items with images
+
+    console.log("Processed shopItems count:",shopItems.length);
+    console.log("First item sample:",shopItems[0]);
 
     await loadVotes();
+    console.log("Votes loaded, calling renderShop...");
     renderShop();
+    console.log("renderShop completed");
   }catch(err){
     console.error("Shop load error:",err);
     document.getElementById("shopGrid").innerHTML=`<div class="error-msg">Could not load today's shop.<br/><span style="font-size:10px;opacity:.7;">${err.message||err}</span></div>`;
@@ -176,15 +186,22 @@ async function loadShop(){
 }
 
 async function loadVotes(){
-  const offerIds=shopItems.map(i=>i.offerId);
-  const {data}=await sb.from("shop_votes").select("offer_id,vote,user_id").eq("shop_date",todayDateStr).in("offer_id",offerIds);
-  voteData={};
-  if(data){
-    data.forEach(v=>{
-      if(!voteData[v.offer_id])voteData[v.offer_id]={buy:0,skip:0,myVote:null};
-      voteData[v.offer_id][v.vote]++;
-      if(user&&v.user_id===user.id)voteData[v.offer_id].myVote=v.vote;
-    });
+  try{
+    console.log("Loading votes for date:",todayDateStr,"item count:",shopItems.length);
+    const {data,error}=await sb.from("shop_votes").select("offer_id,vote,user_id").eq("shop_date",todayDateStr);
+    if(error){console.error("loadVotes error:",error);voteData={};return;}
+    console.log("Votes data received:",data?.length||0,"rows");
+    voteData={};
+    if(data){
+      data.forEach(v=>{
+        if(!voteData[v.offer_id])voteData[v.offer_id]={buy:0,skip:0,myVote:null};
+        voteData[v.offer_id][v.vote]++;
+        if(user&&v.user_id===user.id)voteData[v.offer_id].myVote=v.vote;
+      });
+    }
+  }catch(e){
+    console.error("loadVotes exception:",e);
+    voteData={};
   }
 }
 
