@@ -140,12 +140,18 @@
     /* SHARE MODAL */
     .share-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
     .share-overlay.open{opacity:1;pointer-events:all;}
-    .share-modal{background:#F5F0E8;border-radius:20px;padding:24px;width:340px;display:flex;flex-direction:column;gap:14px;position:relative;max-height:90vh;overflow-y:auto;}
+    .share-modal{background:#F5F0E8;border-radius:20px;padding:24px;width:340px;max-width:92vw;display:flex;flex-direction:column;gap:14px;position:relative;max-height:90vh;overflow-y:auto;}
     .share-modal-title{font-family:var(--fn);font-size:18px;letter-spacing:.06em;color:#2A2520;text-align:center;}
     .share-close{position:absolute;top:12px;right:14px;font-size:16px;cursor:pointer;color:#8A8278;background:none;border:none;}
 
     /* SHARE CARD */
-    .card-preview{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+    .card-preview{border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.15);width:100%;aspect-ratio:900/500;}
+    #cardPreview{width:100%;height:100%;display:block;border-radius:12px;object-fit:contain;}
+
+    @media (max-width: 768px) {
+      .share-modal{padding:16px;width:94vw;max-width:94vw;}
+      .share-modal-title{font-size:15px;}
+    }
     #shareCard{width:300px;background:linear-gradient(135deg,#1a0545 0%,#3a1c71 40%,#7b3fb0 70%,#0d0221 100%);padding:24px;font-family:'Anton',sans-serif;position:relative;overflow:hidden;}
     #shareCard::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 20%,rgba(255,255,255,.08) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(127,119,221,.2) 0%,transparent 50%);}
     .card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px;position:relative;}
@@ -537,8 +543,8 @@ initAuth();
   <div class="share-modal">
     <button class="share-close" onclick="closeShareCard()">✕</button>
     <div class="share-modal-title" style="display:flex;align-items:center;justify-content:center;gap:8px;"><img src="/fnspots_logo.png" alt="FNSpots" style="height:24px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 6px rgba(127,119,221,.4));"/> Share your collection</div>
-    <div class="card-preview" style="border-radius:16px;overflow:hidden;">
-      <canvas id="cardPreview" style="width:100%;display:block;border-radius:12px;"></canvas>
+    <div class="card-preview">
+      <canvas id="cardPreview"></canvas>
     </div>
     <div class="share-actions">
       <button class="share-action-btn primary" onclick="downloadCard()">📤 Share Image</button>
