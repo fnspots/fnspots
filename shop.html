@@ -448,13 +448,50 @@ async function onLoginSuccess(){
   renderShop();
 }
 
-function drawShopShareCard(){
-  const W=900,H=500;
+function loadImg(src){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.crossOrigin="anonymous";
+    img.onload=()=>resolve(img);
+    img.onerror=()=>resolve(null); // don't fail the whole card if one image fails
+    img.src=src;
+  });
+}
+
+function roundRectPath(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+async function drawShopShareCard(){
+  // Get items I voted on, up to 6, prioritizing my own votes
+  const myVotedItems=shopItems
+    .filter(i=>voteData[i.offerId]?.myVote)
+    .slice(0,6);
+
+  const W=900;
+  const cols=3;
+  const rows=Math.ceil(myVotedItems.length/cols)||1;
+  const cellSize=220;
+  const headerH=140;
+  const footerH=70;
+  const padding=30;
+  const H=headerH+rows*cellSize+footerH;
+
   const canvas=document.createElement("canvas");
   canvas.width=W;canvas.height=H;
   const ctx=canvas.getContext("2d");
 
-  // Background — galaxy gradient matching FNSpots brand
+  // Background — galaxy gradient
   const bg=ctx.createLinearGradient(0,0,W,H);
   bg.addColorStop(0,"#0d0221");
   bg.addColorStop(0.4,"#3a1c71");
@@ -462,65 +499,109 @@ function drawShopShareCard(){
   bg.addColorStop(1,"#0d0221");
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
 
-  const gl=ctx.createRadialGradient(W*0.2,H*0.2,0,W*0.2,H*0.2,W*0.4);
-  gl.addColorStop(0,"rgba(255,255,255,0.07)");
+  const gl=ctx.createRadialGradient(W*0.15,H*0.1,0,W*0.15,H*0.1,W*0.4);
+  gl.addColorStop(0,"rgba(255,255,255,0.08)");
   gl.addColorStop(1,"rgba(255,255,255,0)");
   ctx.fillStyle=gl;ctx.fillRect(0,0,W,H);
 
-  ctx.font="bold 22px Anton, sans-serif";
+  // Header
+  ctx.font="bold 18px Anton, sans-serif";
   ctx.fillStyle="rgba(255,255,255,0.5)";
-  ctx.fillText("FNSPOTS.COM/SHOP",48,60);
+  ctx.fillText("FNSPOTS.COM/SHOP",padding,40);
 
-  ctx.font="bold 50px Anton, sans-serif";
+  ctx.font="bold 38px Anton, sans-serif";
   ctx.fillStyle="#ffffff";
-  ctx.fillText(user?user.tag:"Player",48,130);
+  ctx.fillText((user?user.tag:"Player")+"'s Item Shop Votes",padding,85);
 
-  ctx.font="bold 22px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.7)";
-  ctx.fillText("ITEM SHOP VOTES",48,165);
-
-  // Count my buy vs skip votes
   let myBuy=0,mySkip=0;
   Object.values(voteData).forEach(v=>{
     if(v.myVote==="buy")myBuy++;
     if(v.myVote==="skip")mySkip++;
   });
-
-  ctx.font="bold 90px Anton, sans-serif";
-  ctx.fillStyle="#1D9E75";
-  ctx.fillText(myBuy,48,280);
   ctx.font="bold 16px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.6)";
-  ctx.fillText("BUYS",48,310);
+  ctx.fillStyle="rgba(255,255,255,0.7)";
+  ctx.fillText(`✅ ${myBuy} BUY   ❌ ${mySkip} SKIP`,padding,115);
 
-  ctx.font="bold 90px Anton, sans-serif";
-  ctx.fillStyle="#D4537E";
-  ctx.fillText(mySkip,280,280);
-  ctx.font="bold 16px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.6)";
-  ctx.fillText("SKIPS",280,310);
+  // Item grid
+  if(myVotedItems.length===0){
+    ctx.font="bold 18px Anton, sans-serif";
+    ctx.fillStyle="rgba(255,255,255,0.6)";
+    ctx.fillText("No votes yet today — go vote!",padding,headerH+50);
+  } else {
+    const images=await Promise.all(myVotedItems.map(i=>loadImg(i.img)));
+    myVotedItems.forEach((item,idx)=>{
+      const col=idx%cols;
+      const row=Math.floor(idx/cols);
+      const cx=padding+col*((W-padding*2)/cols);
+      const cy=headerH+row*cellSize;
+      const cw=(W-padding*2)/cols-12;
+      const ch=cellSize-16;
 
-  // Today's date
-  ctx.font="14px Anton, sans-serif";
-  ctx.fillStyle="rgba(255,255,255,0.5)";
-  const dateText=document.getElementById("shopDate")?.textContent||"";
-  ctx.fillText(dateText,48,360);
+      // Card background
+      ctx.fillStyle="rgba(255,255,255,0.08)";
+      roundRectPath(ctx,cx,cy,cw,ch,12);
+      ctx.fill();
+
+      // Item image
+      const img=images[idx];
+      const imgSize=Math.min(cw,ch-50);
+      const imgX=cx+(cw-imgSize)/2;
+      const imgY=cy+8;
+      if(img){
+        ctx.save();
+        roundRectPath(ctx,imgX,imgY,imgSize,imgSize,8);
+        ctx.clip();
+        ctx.drawImage(img,imgX,imgY,imgSize,imgSize);
+        ctx.restore();
+      } else {
+        ctx.fillStyle="rgba(255,255,255,0.05)";
+        roundRectPath(ctx,imgX,imgY,imgSize,imgSize,8);
+        ctx.fill();
+      }
+
+      // Vote badge
+      const vote=voteData[item.offerId]?.myVote;
+      const badgeColor=vote==="buy"?"#1D9E75":"#D4537E";
+      const badgeText=vote==="buy"?"BUY":"SKIP";
+      ctx.font="bold 12px Anton, sans-serif";
+      const badgeW=ctx.measureText(badgeText).width+20;
+      ctx.fillStyle=badgeColor;
+      roundRectPath(ctx,imgX+imgSize-badgeW-4,imgY+4,badgeW,22,11);
+      ctx.fill();
+      ctx.fillStyle="#fff";
+      ctx.textAlign="center";
+      ctx.fillText(badgeText,imgX+imgSize-badgeW/2-4,imgY+19);
+      ctx.textAlign="left";
+
+      // Item name
+      ctx.font="bold 11px Anton, sans-serif";
+      ctx.fillStyle="#fff";
+      let name=item.name;
+      if(name.length>22)name=name.substring(0,20)+"…";
+      ctx.fillText(name,cx+8,cy+imgSize+24);
+    });
+  }
 
   // Footer
   ctx.font="14px Anton, sans-serif";
   ctx.fillStyle="rgba(255,255,255,0.3)";
-  ctx.fillText("Vote on today's Item Shop at fnspots.com/shop",48,H-20);
+  ctx.fillText("Vote on today's Item Shop at fnspots.com/shop",padding,H-22);
 
-  ctx.font="bold 14px Anton, sans-serif";
-  ctx.fillStyle="rgba(127,119,221,0.9)";
-  ctx.fillText("Use code GAMERMISTERE in the Item Shop",W-380,H-20);
+  ctx.font="bold 13px Anton, sans-serif";
+  ctx.fillStyle="rgba(127,119,221,0.95)";
+  ctx.textAlign="right";
+  ctx.fillText("Use code GAMERMISTERE",W-padding,H-22);
+  ctx.textAlign="left";
 
   return canvas;
 }
 
 async function shareShop(){
+  const btn=event?.target;
+  const originalText=btn?.textContent;
+  if(btn){btn.textContent="Generating...";btn.disabled=true;}
   try{
-    const canvas=drawShopShareCard();
+    const canvas=await drawShopShareCard();
     const dataUrl=canvas.toDataURL("image/png");
     const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
 
@@ -540,11 +621,14 @@ async function shareShop(){
         }catch(e){
           if(e.name!=="AbortError")fallbackImage(dataUrl,isIOS);
         }
+        if(btn){btn.textContent=originalText;btn.disabled=false;}
       },"image/png");
     } else {
       fallbackImage(dataUrl,isIOS);
+      if(btn){btn.textContent=originalText;btn.disabled=false;}
     }
   }catch(err){
+    if(btn){btn.textContent=originalText;btn.disabled=false;}
     console.error("Share error:",err);
     alert("Couldn't generate share image. Please try again.");
   }
