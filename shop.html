@@ -88,6 +88,11 @@
   <div class="page-title">🛒 Item Shop Vote</div>
   <div class="page-sub">Vote Buy or Skip on today's shop — see what the community thinks</div>
 
+  <div id="greetingCard" style="display:none;background:linear-gradient(135deg,#7f77dd,#D4537E);border-radius:14px;padding:16px 20px;margin-bottom:1.5rem;">
+    <div style="font-family:'Anton',sans-serif;font-size:18px;color:#fff;letter-spacing:.04em;" id="greetingName">Hi Player!</div>
+    <div style="font-size:12px;color:rgba(255,255,255,.85);margin-top:2px;">Are you ready to vote? 🗳️</div>
+  </div>
+
   <div class="shop-date">
     <div>
       <div class="shop-date-label">TODAY'S SHOP</div>
@@ -97,8 +102,8 @@
   </div>
 
   <div id="authGate" class="auth-gate" style="display:none;">
-    <div class="auth-gate-title">Log in to vote</div>
-    <div class="auth-gate-sub">You need an FNSpots account to vote Buy or Skip</div>
+    <div class="auth-gate-title">👀 Browsing as a guest</div>
+    <div class="auth-gate-sub">Log in to FNSpots to vote Buy or Skip on items below</div>
     <button class="auth-gate-btn" onclick="window.location.href='/'">Go to Tracker to Log In</button>
   </div>
 
@@ -135,7 +140,14 @@ async function checkAuth(){
     const {data:profile}=await sb.from("profiles").select("gamertag").eq("id",session.user.id).single();
     if(profile){user={tag:profile.gamertag,id:session.user.id};}
   }
-  document.getElementById("authGate").style.display=user?"none":"block";
+  if(user){
+    document.getElementById("authGate").style.display="none";
+    document.getElementById("greetingCard").style.display="block";
+    document.getElementById("greetingName").textContent="Hi "+user.tag+"!";
+  } else {
+    document.getElementById("authGate").style.display="block";
+    document.getElementById("greetingCard").style.display="none";
+  }
 }
 
 async function loadShop(){
@@ -194,8 +206,8 @@ async function loadShop(){
 
 async function loadVotes(){
   try{
-    console.log("Loading votes for date:",todayDateStr,"item count:",shopItems.length);
-    const {data,error}=await sb.from("shop_votes").select("offer_id,vote,user_id").eq("shop_date",todayDateStr);
+    console.log("Loading all-time votes, item count:",shopItems.length);
+    const {data,error}=await sb.from("shop_votes").select("offer_id,vote,user_id");
     if(error){console.error("loadVotes error:",error);voteData={};return;}
     console.log("Votes data received:",data?.length||0,"rows");
     voteData={};
@@ -301,7 +313,7 @@ async function castVote(offerId,vote,btn){
       offer_id:offerId,
       vote:vote,
       shop_date:todayDateStr
-    },{onConflict:"user_id,offer_id,shop_date"});
+    },{onConflict:"user_id,offer_id"});
 
     if(error)throw error;
 
