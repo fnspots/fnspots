@@ -5,7 +5,7 @@
     { "source": "/about", "destination": "/about.html" },
     { "source": "/calendar", "destination": "/calendar.html" },
     { "source": "/map", "destination": "/map.html" },
-    { "source": "/picker", "destination": "/picker.html" },
+    { "source": "/shop", "destination": "/shop.html" },
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" }
   ]
