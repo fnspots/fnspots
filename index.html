@@ -657,33 +657,53 @@ async function downloadCard(){
     const dataUrl=canvas.toDataURL("image/png");
     const countText=document.getElementById("cardCount")?.textContent||"0 / 103";
 
+    // Second safety timer specifically for the toBlob/share step (WebKit can hang here)
+    let resolved=false;
+    const blobSafetyTimer=setTimeout(()=>{
+      if(!resolved){
+        resolved=true;
+        fallbackDownload(dataUrl);
+        btn.textContent="✅ Downloaded!";
+        setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
+      }
+    },4000);
+
     if(navigator.share&&navigator.canShare){
-      canvas.toBlob(async(blob)=>{
-        try{
-          const file=new File([blob],`fnspots-${user?.tag||"collection"}.png`,{type:"image/png"});
-          if(navigator.canShare({files:[file]})){
-            await navigator.share({
-              title:"My FNSpots Collection",
-              text:`I've collected ${countText} on FNSpots! 👉 fnspots.com/u/${user?.tag||""}`,
-              files:[file]
-            });
-            btn.textContent="✅ Shared!";
-          } else {
-            fallbackDownload(dataUrl);
-            btn.textContent="✅ Downloaded!";
-          }
-        }catch(shareErr){
-          if(shareErr.name!=="AbortError"){
-            console.error(shareErr);
-            fallbackDownload(dataUrl);
-            btn.textContent="✅ Downloaded!";
-          } else {
-            btn.textContent=originalText;
-          }
+      try{
+        const blob=await new Promise((resolve,reject)=>{
+          canvas.toBlob(b=>b?resolve(b):reject(new Error("toBlob returned null")),"image/png");
+        });
+        if(resolved)return; // already handled by safety timer
+        clearTimeout(blobSafetyTimer);
+        const file=new File([blob],`fnspots-${user?.tag||"collection"}.png`,{type:"image/png"});
+        if(navigator.canShare({files:[file]})){
+          await navigator.share({
+            title:"My FNSpots Collection",
+            text:`I've collected ${countText} on FNSpots! 👉 fnspots.com/u/${user?.tag||""}`,
+            files:[file]
+          });
+          btn.textContent="✅ Shared!";
+        } else {
+          fallbackDownload(dataUrl);
+          btn.textContent="✅ Downloaded!";
+        }
+        resolved=true;
+        setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
+      }catch(shareErr){
+        clearTimeout(blobSafetyTimer);
+        if(resolved)return;
+        resolved=true;
+        if(shareErr.name!=="AbortError"){
+          console.error(shareErr);
+          fallbackDownload(dataUrl);
+          btn.textContent="✅ Downloaded!";
+        } else {
+          btn.textContent=originalText;
         }
         setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
-      },"image/png");
+      }
     } else {
+      clearTimeout(blobSafetyTimer);
       fallbackDownload(dataUrl);
       btn.textContent="✅ Downloaded!";
       setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
