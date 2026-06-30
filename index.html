@@ -548,7 +548,7 @@ initAuth();
       <div id="shareCard">
         <div class="card-header">
           <div>
-            <div class="card-logo"><img src="/fnspots_logo.png" alt="FNSpots" style="height:22px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 6px rgba(127,119,221,.4));"/></div>
+            <div class="card-logo"><img src="/fnspots_logo.png" alt="FNSpots" crossorigin="anonymous" style="height:22px;object-fit:contain;vertical-align:middle;filter:drop-shadow(0 2px 6px rgba(127,119,221,.4));"/></div>
             <div class="card-sub">BY GAMERMISTERE</div>
           </div>
         </div>
@@ -610,10 +610,10 @@ function openShareCard(){
       div.style.flexDirection="column";
       div.style.gap="3px";
       const img=document.createElement("img");
-      img.src="/"+sp.imgs.b;
-      img.alt=sp.name;
       img.crossOrigin="anonymous";
+      img.alt=sp.name;
       img.style.width="36px";img.style.height="36px";img.style.objectFit="contain";
+      img.src="/"+sp.imgs.b;
       div.appendChild(img);
       const dotsWrap=document.createElement("div");
       dotsWrap.style.display="flex";dotsWrap.style.gap="2px";dotsWrap.style.justifyContent="center";
@@ -634,6 +634,15 @@ async function downloadCard(){
   const btn=event.target;
   const originalText=btn.textContent;
   btn.textContent="Generating...";btn.disabled=true;
+
+  // Safety timeout — never let the button get stuck
+  const safetyTimer=setTimeout(()=>{
+    if(btn.disabled){
+      btn.textContent=originalText;btn.disabled=false;
+      alert("Taking too long — please try again.");
+    }
+  },10000);
+
   try{
     const cardEl=document.getElementById("shareCard");
     const canvas=await html2canvas(cardEl,{
@@ -641,8 +650,10 @@ async function downloadCard(){
       backgroundColor:null,
       useCORS:true,
       allowTaint:false,
-      logging:false
+      logging:false,
+      imageTimeout:6000
     });
+    clearTimeout(safetyTimer);
     const dataUrl=canvas.toDataURL("image/png");
     const countText=document.getElementById("cardCount")?.textContent||"0 / 103";
 
@@ -678,6 +689,7 @@ async function downloadCard(){
       setTimeout(()=>{btn.textContent=originalText;btn.disabled=false;},2000);
     }
   }catch(e){
+    clearTimeout(safetyTimer);
     console.error("Share card generation failed:",e);
     btn.textContent=originalText;btn.disabled=false;
     alert("Couldn't generate the image. Please try again.");
